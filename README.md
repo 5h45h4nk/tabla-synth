@@ -39,6 +39,17 @@ python3 -m http.server 8080
 
 Then visit `http://localhost:8080`.
 
+## Install as App (PWA)
+This project includes a web app manifest and service worker, so you can install it like an app.
+
+1. Serve it on `localhost` or HTTPS.
+2. Open in Chrome/Edge.
+3. Use the browser install option (install icon in address bar or app menu).
+
+After install:
+- it opens in standalone app window
+- core app files and tabla samples are cached for offline use
+
 ## Controls
 - Select a taal
 - Select a sound pack:

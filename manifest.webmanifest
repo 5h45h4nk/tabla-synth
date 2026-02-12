@@ -1,0 +1,19 @@
+{
+  "name": "Tabla Loop Lab",
+  "short_name": "Tabla Loop",
+  "description": "Bansuri practice companion with tabla taals and tempo control.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020617",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

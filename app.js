@@ -643,3 +643,11 @@ renderBeatGrid();
 bindEvents();
 refreshStatusForPack();
 setTempo(state.tempo);
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {
+      // PWA install still works online if SW registration fails.
+    });
+  });
+}
