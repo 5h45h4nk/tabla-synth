@@ -164,9 +164,30 @@ function ensureAudio() {
     state.master.gain.value = 0.8;
     state.master.connect(state.context.destination);
   }
+}
+
+async function resumeAudioContext() {
+  ensureAudio();
   if (state.context.state === "suspended") {
-    state.context.resume();
+    try {
+      await state.context.resume();
+    } catch (_err) {
+      // Ignore and let caller continue with best effort.
+    }
   }
+}
+
+function unlockAudioClick() {
+  if (!state.context) {
+    return;
+  }
+  const osc = state.context.createOscillator();
+  const gain = state.context.createGain();
+  gain.gain.setValueAtTime(0.00001, state.context.currentTime);
+  osc.connect(gain);
+  gain.connect(state.master);
+  osc.start();
+  osc.stop(state.context.currentTime + 0.01);
 }
 
 function percussiveGain(time, attack, decay, peak = 1, end = 0.0001) {
@@ -465,9 +486,10 @@ async function previewBeat(idx) {
     return;
   }
 
-  ensureAudio();
+  await resumeAudioContext();
+  unlockAudioClick();
   if (state.soundPack !== "synth" && !state.samplesReady && !state.loadingSamples) {
-    await prepareSamples();
+    prepareSamples();
   }
 
   const beatDuration = 60 / state.tempo;
@@ -501,18 +523,17 @@ function scheduler() {
 }
 
 async function start() {
-  ensureAudio();
+  await resumeAudioContext();
+  unlockAudioClick();
   if (state.playing) {
     return;
   }
   if (state.soundPack !== "synth" && !state.samplesReady) {
-    ui.playBtn.disabled = true;
-    ui.playBtn.textContent = "Loading...";
-    await prepareSamples();
-    ui.playBtn.disabled = false;
-    if (!state.samplesReady && state.soundPack === "sonicpi") {
-      setAudioStatus("Sonic Pi pack failed to load. Playing synth fallback.", "error");
-    }
+    prepareSamples().then(() => {
+      if (!state.samplesReady && state.soundPack === "sonicpi") {
+        setAudioStatus("Sonic Pi pack failed on this browser. Using synth fallback.", "error");
+      }
+    });
   }
   state.playing = true;
   state.currentStep = 0;
