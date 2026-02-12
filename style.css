@@ -129,6 +129,18 @@ input[type="number"] {
 .actions {
   display: flex;
   gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tap-value {
+  color: var(--muted);
+  font-size: 0.9rem;
+  min-width: 84px;
+}
+
+.tap-value.live {
+  color: #fde68a;
 }
 
 .audio-status {
@@ -213,6 +225,10 @@ input[type="number"] {
   align-content: space-between;
 }
 
+.beat.taali {
+  border-color: rgba(59, 130, 246, 0.8);
+}
+
 .beat .count-trigger {
   justify-self: start;
   color: var(--muted);
@@ -236,6 +252,26 @@ input[type="number"] {
   font-family: "Sora", sans-serif;
   font-size: 1.04rem;
   letter-spacing: 0.03em;
+}
+
+.beat .marker {
+  justify-self: end;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.beat.sam .marker {
+  color: #86efac;
+}
+
+.beat.taali .marker {
+  color: #93c5fd;
+}
+
+.beat.khali .marker {
+  color: #fda4af;
 }
 
 .beat.active {
@@ -263,6 +299,7 @@ input[type="number"] {
 
   .actions {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .tempo-controls {

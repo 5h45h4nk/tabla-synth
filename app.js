@@ -20,6 +20,8 @@ const TAALS = {
       "Dha",
     ],
     sam: 0,
+    taali: [4, 12],
+    khali: [8],
   },
   teentaal_tika: {
     name: "Teentaal (TiKa Variant)",
@@ -42,11 +44,15 @@ const TAALS = {
       "Dha",
     ],
     sam: 0,
+    taali: [4, 12],
+    khali: [8],
   },
   keherwa: {
     name: "Keherwa",
     bols: ["Dha", "Ge", "Na", "Ti", "Na", "Ka", "Dhi", "Na"],
     sam: 0,
+    taali: [],
+    khali: [4],
   },
 };
 
@@ -90,6 +96,8 @@ const ui = {
   tempoValue: document.getElementById("tempoValue"),
   playBtn: document.getElementById("playBtn"),
   stopBtn: document.getElementById("stopBtn"),
+  tapBtn: document.getElementById("tapBtn"),
+  tapValue: document.getElementById("tapValue"),
   beatGrid: document.getElementById("beatGrid"),
   taalName: document.getElementById("taalName"),
   cycleMeta: document.getElementById("cycleMeta"),
@@ -110,6 +118,7 @@ const state = {
   sampleLoadAttempted: false,
   samplesReady: false,
   soundPack: "auto",
+  tapTimes: [],
 };
 
 const LOOK_AHEAD_MS = 25;
@@ -132,6 +141,10 @@ function setTempo(value) {
   ui.tempoValue.textContent = String(clamped);
   ui.tempoInput.value = String(clamped);
   ui.tempo.value = String(nearestSliderTempo(clamped));
+}
+
+function changeTempo(delta) {
+  setTempo(state.tempo + delta);
 }
 
 function commitTempoInput() {
@@ -388,6 +401,19 @@ function currentTaal() {
   return TAALS[state.selectedTaal];
 }
 
+function beatMarker(taal, idx) {
+  if (idx === taal.sam) {
+    return "Sam";
+  }
+  if ((taal.taali || []).includes(idx)) {
+    return "Taali";
+  }
+  if ((taal.khali || []).includes(idx)) {
+    return "Khali";
+  }
+  return "";
+}
+
 function renderTaalOptions() {
   Object.entries(TAALS).forEach(([key, taal]) => {
     const opt = document.createElement("option");
@@ -406,11 +432,18 @@ function renderBeatGrid() {
   taal.bols.forEach((bol, idx) => {
     const beat = document.createElement("div");
     beat.className = "beat";
+    const marker = beatMarker(taal, idx);
     if (idx === taal.sam) {
       beat.classList.add("sam");
     }
+    if ((taal.taali || []).includes(idx)) {
+      beat.classList.add("taali");
+    }
+    if ((taal.khali || []).includes(idx)) {
+      beat.classList.add("khali");
+    }
     beat.dataset.index = String(idx);
-    beat.innerHTML = `<button type="button" class="count-trigger" data-index="${idx}" aria-label="Play beat ${idx + 1}">${idx + 1}</button><span class="bol">${bol}</span>`;
+    beat.innerHTML = `<button type="button" class="count-trigger" data-index="${idx}" aria-label="Play beat ${idx + 1}">${idx + 1}</button><span class="marker">${marker}</span><span class="bol">${bol}</span>`;
     ui.beatGrid.append(beat);
   });
   setActiveBeat(-1);
@@ -503,6 +536,36 @@ function stop() {
   setActiveBeat(-1);
 }
 
+function commitTapTempo() {
+  const now = performance.now();
+  state.tapTimes.push(now);
+  state.tapTimes = state.tapTimes.filter((t) => now - t <= 2000);
+
+  if (state.tapTimes.length < 2) {
+    ui.tapValue.textContent = "Tap x2+";
+    ui.tapValue.classList.remove("live");
+    return;
+  }
+
+  let sum = 0;
+  for (let i = 1; i < state.tapTimes.length; i += 1) {
+    sum += state.tapTimes[i] - state.tapTimes[i - 1];
+  }
+  const avgMs = sum / (state.tapTimes.length - 1);
+  const bpm = clampTempo(Math.round(60000 / avgMs));
+  setTempo(bpm);
+  ui.tapValue.textContent = `${bpm} BPM`;
+  ui.tapValue.classList.add("live");
+}
+
+function isTypingTarget(el) {
+  if (!el) {
+    return false;
+  }
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
 function bindEvents() {
   ui.tempo.addEventListener("input", (e) => {
     const value = Number(e.target.value);
@@ -548,6 +611,31 @@ function bindEvents() {
 
   ui.playBtn.addEventListener("click", start);
   ui.stopBtn.addEventListener("click", stop);
+  ui.tapBtn.addEventListener("click", commitTapTempo);
+
+  window.addEventListener("keydown", (e) => {
+    if (isTypingTarget(document.activeElement)) {
+      return;
+    }
+    if (e.code === "Space") {
+      e.preventDefault();
+      if (state.playing) {
+        stop();
+      } else {
+        start();
+      }
+      return;
+    }
+    if (e.code === "ArrowUp" || e.code === "ArrowRight") {
+      e.preventDefault();
+      changeTempo(5);
+      return;
+    }
+    if (e.code === "ArrowDown" || e.code === "ArrowLeft") {
+      e.preventDefault();
+      changeTempo(-5);
+    }
+  });
 }
 
 renderTaalOptions();

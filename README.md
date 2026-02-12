@@ -47,4 +47,12 @@ Then visit `http://localhost:8080`.
   - `Synth` (always uses built-in synthesized tabla)
 - Set tempo with slider in 5 BPM steps (40-240)
 - Enter exact tempo with numeric BPM input (40-240)
+- Tap tempo button (`Tap x2+`) to set BPM from your hand taps
 - Play/Stop loop
+- Click beat numbers to preview individual bols
+- Sam/Taali/Khali markers are shown on the beat grid
+
+## Keyboard shortcuts
+- `Space`: play/stop
+- `ArrowUp` / `ArrowRight`: tempo +5
+- `ArrowDown` / `ArrowLeft`: tempo -5
