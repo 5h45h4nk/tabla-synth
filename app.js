@@ -1,0 +1,557 @@
+const TAALS = {
+  teentaal: {
+    name: "Teentaal",
+    bols: [
+      "Dha",
+      "Dhin",
+      "Dhin",
+      "Dha",
+      "Dha",
+      "Dhin",
+      "Dhin",
+      "Dha",
+      "Dha",
+      "Tin",
+      "Tin",
+      "Ta",
+      "Ta",
+      "Dhin",
+      "Dhin",
+      "Dha",
+    ],
+    sam: 0,
+  },
+  teentaal_tika: {
+    name: "Teentaal (TiKa Variant)",
+    bols: [
+      "Dha",
+      "Dhin",
+      "Dhin",
+      "Dha",
+      "Dha",
+      "Dhin",
+      "Dhin",
+      "Dha",
+      "Dha",
+      "Tin",
+      "Tin",
+      "Ta",
+      "TiKa",
+      "Dhin",
+      "Dhin",
+      "Dha",
+    ],
+    sam: 0,
+  },
+  keherwa: {
+    name: "Keherwa",
+    bols: ["Dha", "Ge", "Na", "Ti", "Na", "Ka", "Dhi", "Na"],
+    sam: 0,
+  },
+};
+
+const SAMPLE_FILES = {
+  tabla_na: "assets/samples/tabla_na.flac",
+  tabla_na_s: "assets/samples/tabla_na_s.flac",
+  tabla_tun1: "assets/samples/tabla_tun1.flac",
+  tabla_te1: "assets/samples/tabla_te1.flac",
+  tabla_te2: "assets/samples/tabla_te2.flac",
+  tabla_te_ne: "assets/samples/tabla_te_ne.flac",
+  tabla_tas1: "assets/samples/tabla_tas1.flac",
+  tabla_ke1: "assets/samples/tabla_ke1.flac",
+  tabla_ghe1: "assets/samples/tabla_ghe1.flac",
+  tabla_ghe2: "assets/samples/tabla_ghe2.flac",
+  tabla_dhec: "assets/samples/tabla_dhec.flac",
+};
+
+const BOL_SAMPLE_MAP = {
+  Dha: [
+    { choices: ["tabla_ghe1", "tabla_ghe2"], gain: 0.95 },
+    { choices: ["tabla_na", "tabla_na_s"], gain: 0.78 },
+  ],
+  Dhin: [
+    { choices: ["tabla_ghe2", "tabla_ghe1"], gain: 0.88 },
+    { choices: ["tabla_tun1", "tabla_na"], gain: 0.68 },
+  ],
+  Dhi: [{ choices: ["tabla_tun1", "tabla_na"], gain: 0.78 }],
+  Tin: [{ choices: ["tabla_te_ne", "tabla_te2"], gain: 0.74 }],
+  Ta: [{ choices: ["tabla_tas1", "tabla_te1"], gain: 0.72 }],
+  Na: [{ choices: ["tabla_na", "tabla_na_s"], gain: 0.82 }],
+  Ge: [{ choices: ["tabla_ghe1", "tabla_ghe2"], gain: 0.94 }],
+  Ti: [{ choices: ["tabla_te1", "tabla_te2"], gain: 0.7 }],
+  Ka: [{ choices: ["tabla_ke1", "tabla_tas1"], gain: 0.7 }],
+};
+
+const ui = {
+  taalSelect: document.getElementById("taalSelect"),
+  samplePack: document.getElementById("samplePack"),
+  tempo: document.getElementById("tempo"),
+  tempoInput: document.getElementById("tempoInput"),
+  tempoValue: document.getElementById("tempoValue"),
+  playBtn: document.getElementById("playBtn"),
+  stopBtn: document.getElementById("stopBtn"),
+  beatGrid: document.getElementById("beatGrid"),
+  taalName: document.getElementById("taalName"),
+  cycleMeta: document.getElementById("cycleMeta"),
+  audioStatus: document.getElementById("audioStatus"),
+};
+
+const state = {
+  context: null,
+  master: null,
+  tempo: Number(ui.tempo.value),
+  playing: false,
+  selectedTaal: "teentaal",
+  currentStep: 0,
+  nextNoteTime: 0,
+  timerId: null,
+  sampleBuffers: new Map(),
+  loadingSamples: false,
+  sampleLoadAttempted: false,
+  samplesReady: false,
+  soundPack: "auto",
+};
+
+const LOOK_AHEAD_MS = 25;
+const SCHEDULE_AHEAD_SEC = 0.1;
+const TEMPO_MIN = Number(ui.tempo.min);
+const TEMPO_MAX = Number(ui.tempo.max);
+const TEMPO_SLIDER_STEP = Number(ui.tempo.step) || 5;
+
+function clampTempo(value) {
+  return Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, value));
+}
+
+function nearestSliderTempo(value) {
+  return clampTempo(Math.round(value / TEMPO_SLIDER_STEP) * TEMPO_SLIDER_STEP);
+}
+
+function setTempo(value) {
+  const clamped = clampTempo(value);
+  state.tempo = clamped;
+  ui.tempoValue.textContent = String(clamped);
+  ui.tempoInput.value = String(clamped);
+  ui.tempo.value = String(nearestSliderTempo(clamped));
+}
+
+function commitTempoInput() {
+  const raw = Number(ui.tempoInput.value);
+  if (!Number.isFinite(raw)) {
+    ui.tempoInput.value = String(state.tempo);
+    return;
+  }
+  setTempo(raw);
+}
+
+function ensureAudio() {
+  if (!state.context) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    state.context = new AudioCtx();
+    state.master = state.context.createGain();
+    state.master.gain.value = 0.8;
+    state.master.connect(state.context.destination);
+  }
+  if (state.context.state === "suspended") {
+    state.context.resume();
+  }
+}
+
+function percussiveGain(time, attack, decay, peak = 1, end = 0.0001) {
+  const g = state.context.createGain();
+  g.gain.setValueAtTime(0.0001, time);
+  g.gain.linearRampToValueAtTime(peak, time + attack);
+  g.gain.exponentialRampToValueAtTime(end, time + attack + decay);
+  g.connect(state.master);
+  return g;
+}
+
+function setAudioStatus(text, tone = "muted") {
+  ui.audioStatus.textContent = text;
+  ui.audioStatus.classList.remove("ok", "error");
+  if (tone === "ok") {
+    ui.audioStatus.classList.add("ok");
+  }
+  if (tone === "error") {
+    ui.audioStatus.classList.add("error");
+  }
+}
+
+function randomPick(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function deterministicPick(items, key = 0) {
+  if (!items || items.length === 0) {
+    return null;
+  }
+  const idx = Math.abs(Number(key) || 0) % items.length;
+  return items[idx];
+}
+
+function hashString(text) {
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+async function loadOneSample(id, url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${id}`);
+  }
+  const audioData = await response.arrayBuffer();
+  const decoded = await state.context.decodeAudioData(audioData.slice(0));
+  state.sampleBuffers.set(id, decoded);
+}
+
+async function prepareSamples() {
+  if (state.samplesReady || state.loadingSamples) {
+    return;
+  }
+  if (state.sampleLoadAttempted && state.soundPack !== "sonicpi") {
+    return;
+  }
+  state.loadingSamples = true;
+  state.sampleLoadAttempted = true;
+  setAudioStatus("Loading real tabla samples...", "muted");
+  try {
+    await Promise.all(Object.entries(SAMPLE_FILES).map(([id, url]) => loadOneSample(id, url)));
+    state.samplesReady = true;
+    setAudioStatus("Real tabla samples loaded.", "ok");
+  } catch (error) {
+    state.samplesReady = false;
+    setAudioStatus("Could not load FLAC samples in this browser. Using synth fallback.", "error");
+  } finally {
+    state.loadingSamples = false;
+  }
+}
+
+function shouldUseSamples() {
+  if (state.soundPack === "synth") {
+    return false;
+  }
+  return state.samplesReady;
+}
+
+function refreshStatusForPack() {
+  if (state.soundPack === "synth") {
+    setAudioStatus("Using synth sound pack.", "muted");
+    return;
+  }
+  if (state.samplesReady) {
+    setAudioStatus("Using Sonic Pi real tabla samples.", "ok");
+    return;
+  }
+  if (state.soundPack === "sonicpi") {
+    setAudioStatus("Sonic Pi pack selected. Samples will load on play.", "muted");
+    return;
+  }
+  setAudioStatus("Auto mode: real samples load on first play, else synth fallback.", "muted");
+}
+
+function playSample(sampleId, time, gainValue = 1, playbackRate = 1) {
+  const buffer = state.sampleBuffers.get(sampleId);
+  if (!buffer) {
+    return false;
+  }
+  const src = state.context.createBufferSource();
+  const gain = state.context.createGain();
+  src.buffer = buffer;
+  src.playbackRate.setValueAtTime(playbackRate, time);
+  gain.gain.setValueAtTime(gainValue, time);
+  src.connect(gain);
+  gain.connect(state.master);
+  src.start(time);
+  return true;
+}
+
+function playBolWithSamples(bol, time) {
+  const layers = BOL_SAMPLE_MAP[bol];
+  if (!layers) {
+    return false;
+  }
+  let allPlayed = true;
+  layers.forEach((layer, layerIndex) => {
+    const sampleId = layer.id || deterministicPick(layer.choices, hashString(`${bol}:${layerIndex}`));
+    const ok = playSample(sampleId, time, layer.gain ?? 0.8, layer.rate ?? 1);
+    allPlayed = allPlayed && ok;
+  });
+  return allPlayed;
+}
+
+function playTiKaWithSamples(time, beatDuration) {
+  const split = Math.max(0.04, beatDuration * 0.45);
+  const tiId = deterministicPick(["tabla_te1", "tabla_te2"], hashString("Ti"));
+  const kaId = deterministicPick(["tabla_ke1", "tabla_tas1"], hashString("Ka"));
+  const first = playSample(tiId, time, 0.72, 1);
+  const second = playSample(kaId, time + split, 0.72, 1);
+  return first && second;
+}
+
+function playDayan(time, freq = 540, decay = 0.16, level = 0.34) {
+  const osc = state.context.createOscillator();
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(freq, time);
+  const env = percussiveGain(time, 0.002, decay, level);
+  osc.connect(env);
+  osc.start(time);
+  osc.stop(time + decay + 0.05);
+}
+
+function playBayan(time, freqStart = 170, freqEnd = 110, decay = 0.22, level = 0.48) {
+  const osc = state.context.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freqStart, time);
+  osc.frequency.exponentialRampToValueAtTime(freqEnd, time + 0.09);
+  const env = percussiveGain(time, 0.002, decay, level);
+  osc.connect(env);
+  osc.start(time);
+  osc.stop(time + decay + 0.06);
+}
+
+function playAttackNoise(time, decay = 0.045, level = 0.12) {
+  const size = Math.floor(state.context.sampleRate * 0.08);
+  const buffer = state.context.createBuffer(1, size, state.context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < size; i += 1) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+  }
+  const src = state.context.createBufferSource();
+  src.buffer = buffer;
+  const hp = state.context.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 1400;
+  const env = percussiveGain(time, 0.001, decay, level);
+  src.connect(hp);
+  hp.connect(env);
+  src.start(time);
+  src.stop(time + 0.09);
+}
+
+function triggerBol(bol, time, beatDuration) {
+  if (bol === "TiKa") {
+    if (shouldUseSamples() && playTiKaWithSamples(time, beatDuration)) {
+      return;
+    }
+    const split = Math.max(0.04, beatDuration * 0.45);
+    playDayan(time, 900, 0.06, 0.2);
+    playAttackNoise(time + split, 0.02, 0.12);
+    return;
+  }
+
+  if (shouldUseSamples() && playBolWithSamples(bol, time)) {
+    return;
+  }
+
+  switch (bol) {
+    case "Dha":
+      playBayan(time, 180, 110, 0.22, 0.5);
+      playDayan(time, 520, 0.16, 0.32);
+      playAttackNoise(time, 0.03, 0.04);
+      break;
+    case "Dhin":
+      playBayan(time, 175, 120, 0.21, 0.4);
+      playDayan(time, 640, 0.2, 0.28);
+      break;
+    case "Dhi":
+      playDayan(time, 580, 0.16, 0.3);
+      break;
+    case "Tin":
+      playDayan(time, 760, 0.1, 0.28);
+      break;
+    case "Ta":
+      playDayan(time, 820, 0.06, 0.22);
+      playAttackNoise(time, 0.026, 0.1);
+      break;
+    case "Na":
+      playDayan(time, 700, 0.08, 0.22);
+      playAttackNoise(time, 0.028, 0.08);
+      break;
+    case "Ge":
+      playBayan(time, 190, 115, 0.2, 0.46);
+      break;
+    case "Ti":
+      playDayan(time, 900, 0.06, 0.2);
+      break;
+    case "Ka":
+      playAttackNoise(time, 0.02, 0.12);
+      break;
+    default:
+      playDayan(time, 620, 0.12, 0.22);
+      break;
+  }
+}
+
+function currentTaal() {
+  return TAALS[state.selectedTaal];
+}
+
+function renderTaalOptions() {
+  Object.entries(TAALS).forEach(([key, taal]) => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = taal.name;
+    ui.taalSelect.append(opt);
+  });
+}
+
+function renderBeatGrid() {
+  const taal = currentTaal();
+  ui.taalName.textContent = taal.name;
+  ui.cycleMeta.textContent = `${taal.bols.length} beats`;
+  ui.beatGrid.innerHTML = "";
+
+  taal.bols.forEach((bol, idx) => {
+    const beat = document.createElement("div");
+    beat.className = "beat";
+    if (idx === taal.sam) {
+      beat.classList.add("sam");
+    }
+    beat.dataset.index = String(idx);
+    beat.innerHTML = `<button type="button" class="count-trigger" data-index="${idx}" aria-label="Play beat ${idx + 1}">${idx + 1}</button><span class="bol">${bol}</span>`;
+    ui.beatGrid.append(beat);
+  });
+  setActiveBeat(-1);
+}
+
+function flashBeatPreview(idx) {
+  const beat = ui.beatGrid.querySelector(`.beat[data-index="${idx}"]`);
+  if (!beat) {
+    return;
+  }
+  beat.classList.add("preview");
+  window.setTimeout(() => beat.classList.remove("preview"), 180);
+}
+
+async function previewBeat(idx) {
+  const taal = currentTaal();
+  const bol = taal.bols[idx];
+  if (!bol) {
+    return;
+  }
+
+  ensureAudio();
+  if (state.soundPack !== "synth" && !state.samplesReady && !state.loadingSamples) {
+    await prepareSamples();
+  }
+
+  const beatDuration = 60 / state.tempo;
+  triggerBol(bol, state.context.currentTime + 0.01, beatDuration);
+  flashBeatPreview(idx);
+}
+
+function setActiveBeat(idx) {
+  const beats = ui.beatGrid.querySelectorAll(".beat");
+  beats.forEach((el, i) => {
+    el.classList.toggle("active", i === idx);
+  });
+}
+
+function scheduleBeat(time, idx, beatDuration) {
+  const taal = currentTaal();
+  triggerBol(taal.bols[idx], time, beatDuration);
+
+  const deltaMs = Math.max(0, (time - state.context.currentTime) * 1000);
+  setTimeout(() => setActiveBeat(idx), deltaMs);
+}
+
+function scheduler() {
+  const taal = currentTaal();
+  const secondsPerBeat = 60 / state.tempo;
+  while (state.nextNoteTime < state.context.currentTime + SCHEDULE_AHEAD_SEC) {
+    scheduleBeat(state.nextNoteTime, state.currentStep, secondsPerBeat);
+    state.nextNoteTime += secondsPerBeat;
+    state.currentStep = (state.currentStep + 1) % taal.bols.length;
+  }
+}
+
+async function start() {
+  ensureAudio();
+  if (state.playing) {
+    return;
+  }
+  if (state.soundPack !== "synth" && !state.samplesReady) {
+    ui.playBtn.disabled = true;
+    ui.playBtn.textContent = "Loading...";
+    await prepareSamples();
+    ui.playBtn.disabled = false;
+    if (!state.samplesReady && state.soundPack === "sonicpi") {
+      setAudioStatus("Sonic Pi pack failed to load. Playing synth fallback.", "error");
+    }
+  }
+  state.playing = true;
+  state.currentStep = 0;
+  state.nextNoteTime = state.context.currentTime + 0.06;
+  ui.playBtn.textContent = "Playing";
+  ui.playBtn.classList.add("is-playing");
+  state.timerId = window.setInterval(scheduler, LOOK_AHEAD_MS);
+}
+
+function stop() {
+  if (!state.playing) {
+    return;
+  }
+  state.playing = false;
+  if (state.timerId) {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+  ui.playBtn.textContent = "Play";
+  ui.playBtn.classList.remove("is-playing");
+  setActiveBeat(-1);
+}
+
+function bindEvents() {
+  ui.tempo.addEventListener("input", (e) => {
+    const value = Number(e.target.value);
+    setTempo(value);
+  });
+
+  ui.tempoInput.addEventListener("blur", () => {
+    commitTempoInput();
+  });
+
+  ui.tempoInput.addEventListener("change", () => {
+    commitTempoInput();
+  });
+
+  ui.tempoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      commitTempoInput();
+      ui.tempoInput.blur();
+    }
+  });
+
+  ui.taalSelect.addEventListener("change", (e) => {
+    state.selectedTaal = e.target.value;
+    renderBeatGrid();
+  });
+
+  ui.samplePack.addEventListener("change", (e) => {
+    state.soundPack = e.target.value;
+    refreshStatusForPack();
+  });
+
+  ui.beatGrid.addEventListener("click", (e) => {
+    const trigger = e.target.closest(".count-trigger");
+    if (!trigger) {
+      return;
+    }
+    const idx = Number(trigger.dataset.index);
+    if (!Number.isInteger(idx)) {
+      return;
+    }
+    previewBeat(idx);
+  });
+
+  ui.playBtn.addEventListener("click", start);
+  ui.stopBtn.addEventListener("click", stop);
+}
+
+renderTaalOptions();
+renderBeatGrid();
+bindEvents();
+refreshStatusForPack();
+setTempo(state.tempo);

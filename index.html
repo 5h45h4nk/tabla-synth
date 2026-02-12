@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabla Loop Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+    <main class="app-shell">
+      <header class="top">
+        <p class="eyebrow">Riyaz Companion</p>
+        <h1>Tabla Loop Lab</h1>
+        <p class="sub">Practice bansuri with playable taals and live tempo control.</p>
+      </header>
+
+      <section class="panel controls">
+        <div class="field">
+          <label for="taalSelect">Taal</label>
+          <select id="taalSelect"></select>
+        </div>
+
+        <div class="field">
+          <label for="samplePack">Sound Pack</label>
+          <select id="samplePack">
+            <option value="auto">Auto (Real then fallback)</option>
+            <option value="sonicpi">Sonic Pi (Real)</option>
+            <option value="synth">Synth (Built-in)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="tempo">Tempo</label>
+            <span><strong id="tempoValue">90</strong> BPM</span>
+          </div>
+          <div class="tempo-controls">
+            <input id="tempo" type="range" min="40" max="240" step="5" value="90" />
+            <input id="tempoInput" type="number" min="40" max="240" step="1" value="90" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="playBtn" class="btn primary">Play</button>
+          <button id="stopBtn" class="btn ghost">Stop</button>
+        </div>
+        <p id="audioStatus" class="audio-status">Real tabla samples will load on first play.</p>
+      </section>
+
+      <section class="panel cycle">
+        <div class="cycle-head">
+          <h2 id="taalName">Teentaal</h2>
+          <p id="cycleMeta">16 beats</p>
+        </div>
+        <div id="beatGrid" class="beat-grid"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
