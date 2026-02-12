@@ -54,6 +54,13 @@ const TAALS = {
     taali: [],
     khali: [4],
   },
+  keherwa_4: {
+    name: "Keherwa (4 Beat Combined)",
+    bols: ["DhaGe", "NaTi", "NaKa", "DhiNa"],
+    sam: 0,
+    taali: [],
+    khali: [2],
+  },
 };
 
 const SAMPLE_FILES = {
@@ -86,6 +93,14 @@ const BOL_SAMPLE_MAP = {
   Ge: [{ choices: ["tabla_ghe1", "tabla_ghe2"], gain: 0.94 }],
   Ti: [{ choices: ["tabla_te1", "tabla_te2"], gain: 0.7 }],
   Ka: [{ choices: ["tabla_ke1", "tabla_tas1"], gain: 0.7 }],
+};
+
+const COMBINED_BOLS = {
+  TiKa: ["Ti", "Ka"],
+  DhaGe: ["Dha", "Ge"],
+  NaTi: ["Na", "Ti"],
+  NaKa: ["Na", "Ka"],
+  DhiNa: ["Dhi", "Na"],
 };
 
 const ui = {
@@ -317,15 +332,6 @@ function playBolWithSamples(bol, time) {
   return allPlayed;
 }
 
-function playTiKaWithSamples(time, beatDuration) {
-  const split = Math.max(0.04, beatDuration * 0.45);
-  const tiId = deterministicPick(["tabla_te1", "tabla_te2"], hashString("Ti"));
-  const kaId = deterministicPick(["tabla_ke1", "tabla_tas1"], hashString("Ka"));
-  const first = playSample(tiId, time, 0.72, 1);
-  const second = playSample(kaId, time + split, 0.72, 1);
-  return first && second;
-}
-
 function playDayan(time, freq = 540, decay = 0.16, level = 0.34) {
   const osc = state.context.createOscillator();
   osc.type = "triangle";
@@ -366,17 +372,7 @@ function playAttackNoise(time, decay = 0.045, level = 0.12) {
   src.stop(time + 0.09);
 }
 
-function triggerBol(bol, time, beatDuration) {
-  if (bol === "TiKa") {
-    if (shouldUseSamples() && playTiKaWithSamples(time, beatDuration)) {
-      return;
-    }
-    const split = Math.max(0.04, beatDuration * 0.45);
-    playDayan(time, 900, 0.06, 0.2);
-    playAttackNoise(time + split, 0.02, 0.12);
-    return;
-  }
-
+function triggerBaseBol(bol, time) {
   if (shouldUseSamples() && playBolWithSamples(bol, time)) {
     return;
   }
@@ -418,6 +414,18 @@ function triggerBol(bol, time, beatDuration) {
       playDayan(time, 620, 0.12, 0.22);
       break;
   }
+}
+
+function triggerBol(bol, time, beatDuration) {
+  const combined = COMBINED_BOLS[bol];
+  if (combined) {
+    const split = Math.max(0.04, beatDuration * 0.45);
+    triggerBaseBol(combined[0], time);
+    triggerBaseBol(combined[1], time + split);
+    return;
+  }
+
+  triggerBaseBol(bol, time);
 }
 
 function currentTaal() {
