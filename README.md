@@ -62,6 +62,7 @@ After install:
 - Play/Stop loop
 - Click beat numbers to preview individual bols
 - Sam/Taali/Khali markers are shown on the beat grid
+- iPhone hint: if audio is missing, turn off silent mode and increase media volume
 
 ## Keyboard shortcuts
 - `Space`: play/stop

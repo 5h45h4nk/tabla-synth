@@ -214,30 +214,38 @@ input[type="number"] {
   color: var(--muted);
 }
 
-.now-playing {
-  display: grid;
-  justify-items: end;
-  text-align: right;
-  min-width: 120px;
+.live-panel {
+  margin-top: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.65);
+  background: linear-gradient(120deg, rgba(245, 158, 11, 0.16), rgba(15, 23, 42, 0.85));
+  border-radius: 14px;
+  padding: 10px 12px;
 }
 
-.now-playing .label {
-  color: var(--muted);
+.live-panel .label {
+  color: #fde68a;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-.now-playing strong {
+.live-main {
+  margin-top: 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.live-main strong {
   font-family: "Sora", sans-serif;
-  font-size: 2.05rem;
+  font-size: 2.4rem;
   line-height: 1;
   color: #fde68a;
 }
 
-.now-playing span {
-  color: #cbd5e1;
-  font-size: 0.86rem;
+.live-main span {
+  color: #f8fafc;
+  font-size: 1rem;
 }
 
 .beat-grid {
@@ -338,9 +346,7 @@ input[type="number"] {
     grid-template-columns: 1fr;
   }
 
-  .now-playing {
-    justify-items: start;
-    text-align: left;
-    min-width: auto;
+  .live-main strong {
+    font-size: 2rem;
   }
 }

@@ -680,6 +680,16 @@ setTempo(state.tempo);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
+    const isLocalDev =
+      window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
+    if (isLocalDev) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
+      });
+      return;
+    }
+
     navigator.serviceWorker.register("service-worker.js").catch(() => {
       // PWA install still works online if SW registration fails.
     });
