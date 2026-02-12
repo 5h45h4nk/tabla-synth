@@ -57,12 +57,20 @@
           <span id="tapValue" class="tap-value">Tap x2+</span>
         </div>
         <p id="audioStatus" class="audio-status">Real tabla samples will load on first play.</p>
+        <p class="audio-hint">No sound on iPhone? Turn off silent mode and raise media volume.</p>
       </section>
 
       <section class="panel cycle">
         <div class="cycle-head">
-          <h2 id="taalName">Teentaal</h2>
-          <p id="cycleMeta">16 beats</p>
+          <div>
+            <h2 id="taalName">Teentaal</h2>
+            <p id="cycleMeta">16 beats</p>
+          </div>
+          <div class="now-playing">
+            <span class="label">Now Playing</span>
+            <strong id="liveBeatNumber">--</strong>
+            <span id="liveBeatBol">-</span>
+          </div>
         </div>
         <div id="beatGrid" class="beat-grid"></div>
       </section>

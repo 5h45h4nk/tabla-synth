@@ -149,6 +149,12 @@ input[type="number"] {
   font-size: 0.9rem;
 }
 
+.audio-hint {
+  margin: -4px 0 0;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+}
+
 .audio-status.ok {
   color: #86efac;
 }
@@ -206,6 +212,32 @@ input[type="number"] {
 .cycle-head p {
   margin: 0;
   color: var(--muted);
+}
+
+.now-playing {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+  min-width: 120px;
+}
+
+.now-playing .label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.now-playing strong {
+  font-family: "Sora", sans-serif;
+  font-size: 2.05rem;
+  line-height: 1;
+  color: #fde68a;
+}
+
+.now-playing span {
+  color: #cbd5e1;
+  font-size: 0.86rem;
 }
 
 .beat-grid {
@@ -304,5 +336,11 @@ input[type="number"] {
 
   .tempo-controls {
     grid-template-columns: 1fr;
+  }
+
+  .now-playing {
+    justify-items: start;
+    text-align: left;
+    min-width: auto;
   }
 }

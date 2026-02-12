@@ -101,6 +101,8 @@ const ui = {
   beatGrid: document.getElementById("beatGrid"),
   taalName: document.getElementById("taalName"),
   cycleMeta: document.getElementById("cycleMeta"),
+  liveBeatNumber: document.getElementById("liveBeatNumber"),
+  liveBeatBol: document.getElementById("liveBeatBol"),
   audioStatus: document.getElementById("audioStatus"),
 };
 
@@ -494,6 +496,7 @@ async function previewBeat(idx) {
 
   const beatDuration = 60 / state.tempo;
   triggerBol(bol, state.context.currentTime + 0.01, beatDuration);
+  setActiveBeat(idx);
   flashBeatPreview(idx);
 }
 
@@ -502,6 +505,16 @@ function setActiveBeat(idx) {
   beats.forEach((el, i) => {
     el.classList.toggle("active", i === idx);
   });
+
+  if (idx < 0) {
+    ui.liveBeatNumber.textContent = "--";
+    ui.liveBeatBol.textContent = "-";
+    return;
+  }
+  const taal = currentTaal();
+  const bol = taal.bols[idx] || "-";
+  ui.liveBeatNumber.textContent = String(idx + 1);
+  ui.liveBeatBol.textContent = bol;
 }
 
 function scheduleBeat(time, idx, beatDuration) {
