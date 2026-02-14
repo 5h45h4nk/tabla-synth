@@ -588,6 +588,21 @@ function setPlayUI(isPlaying) {
   }
 }
 
+function setToggleDisabled(isDisabled, loadingLabel = "Loading...") {
+  if (ui.playToggleBtn) {
+    ui.playToggleBtn.disabled = isDisabled;
+    if (isDisabled) {
+      ui.playToggleBtn.textContent = loadingLabel;
+    }
+  }
+  if (ui.mobilePlayToggleBtn) {
+    ui.mobilePlayToggleBtn.disabled = isDisabled;
+    if (isDisabled) {
+      ui.mobilePlayToggleBtn.textContent = loadingLabel;
+    }
+  }
+}
+
 function scheduleBeat(time, idx, beatDuration) {
   const taal = currentTaal();
   triggerBol(taal.bols[idx], time, beatDuration);
@@ -613,11 +628,12 @@ async function start() {
     return;
   }
   if (state.soundPack !== "synth" && !state.samplesReady) {
-    prepareSamples().then(() => {
-      if (!state.samplesReady && state.soundPack === "sonicpi") {
-        setAudioStatus("Sonic Pi pack failed on this browser. Using synth fallback.", "error");
-      }
-    });
+    setToggleDisabled(true);
+    await prepareSamples();
+    setToggleDisabled(false);
+    if (!state.samplesReady && state.soundPack === "sonicpi") {
+      setAudioStatus("Sonic Pi pack failed on this browser. Using synth fallback.", "error");
+    }
   }
   state.playing = true;
   state.currentStep = 0;
