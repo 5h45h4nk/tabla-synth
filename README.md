@@ -62,6 +62,7 @@ After install:
 - Tabla tuning slider: chromatic pitch shift from -12 to +12 semitones (all bols)
 - Tap tempo button (`Tap x2+`) to set BPM from your hand taps
 - Play/Stop loop
+- Mobile: sticky bottom control bar keeps play/stop/tap + live tempo/tuning visible
 - Click beat numbers to preview individual bols
 - Sam/Taali/Khali markers are shown on the beat grid
 - iPhone hint: if audio is missing, turn off silent mode and increase media volume
