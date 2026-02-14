@@ -56,8 +56,8 @@ After install:
   - `Auto` (tries real samples first, falls back to synth)
   - `Sonic Pi (Real)` (prioritizes real sample playback)
   - `Synth` (always uses built-in synthesized tabla)
-- Set tempo with slider in 5 BPM steps (40-240)
-- Enter exact tempo with numeric BPM input (40-240)
+- Set tempo with slider in 5 BPM steps (40-700)
+- Enter exact tempo with numeric BPM input (40-700)
 - Tap tempo button (`Tap x2+`) to set BPM from your hand taps
 - Play/Stop loop
 - Click beat numbers to preview individual bols
