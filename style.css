@@ -423,8 +423,7 @@ input[type="number"] {
     align-items: stretch;
   }
 
-  .actions #playBtn,
-  .actions #stopBtn {
+  .actions #playToggleBtn {
     display: none;
   }
 
@@ -448,7 +447,7 @@ input[type="number"] {
   }
 
   .mobile-bar .btn {
-    flex: 1 1 50%;
+    flex: 1 1 100%;
     min-height: 48px;
   }
 

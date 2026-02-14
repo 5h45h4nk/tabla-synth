@@ -117,11 +117,9 @@ const ui = {
   tuningValue: document.getElementById("tuningValue"),
   tuningSemitones: document.getElementById("tuningSemitones"),
   tuningMarkers: document.getElementById("tuningMarkers"),
-  playBtn: document.getElementById("playBtn"),
-  stopBtn: document.getElementById("stopBtn"),
+  playToggleBtn: document.getElementById("playToggleBtn"),
   mobileBar: document.getElementById("mobileBar"),
-  mobilePlayBtn: document.getElementById("mobilePlayBtn"),
-  mobileStopBtn: document.getElementById("mobileStopBtn"),
+  mobilePlayToggleBtn: document.getElementById("mobilePlayToggleBtn"),
   mobileBeatNumber: document.getElementById("mobileBeatNumber"),
   mobileBeatBol: document.getElementById("mobileBeatBol"),
   tapBtn: document.getElementById("tapBtn"),
@@ -579,10 +577,11 @@ function setActiveBeat(idx) {
 }
 
 function setPlayUI(isPlaying) {
-  ui.playBtn.textContent = isPlaying ? "Playing" : "Play";
-  ui.playBtn.classList.toggle("is-playing", isPlaying);
-  ui.mobilePlayBtn.textContent = isPlaying ? "Playing" : "Play";
-  ui.mobilePlayBtn.classList.toggle("is-playing", isPlaying);
+  const label = isPlaying ? "Stop" : "Play";
+  ui.playToggleBtn.textContent = label;
+  ui.playToggleBtn.classList.toggle("is-playing", isPlaying);
+  ui.mobilePlayToggleBtn.textContent = label;
+  ui.mobilePlayToggleBtn.classList.toggle("is-playing", isPlaying);
 }
 
 function scheduleBeat(time, idx, beatDuration) {
@@ -634,6 +633,14 @@ function stop() {
   }
   setPlayUI(false);
   setActiveBeat(-1);
+}
+
+function togglePlayback() {
+  if (state.playing) {
+    stop();
+  } else {
+    start();
+  }
 }
 
 function commitTapTempo() {
@@ -725,10 +732,8 @@ function bindEvents() {
     previewBeat(idx);
   });
 
-  ui.playBtn.addEventListener("click", start);
-  ui.stopBtn.addEventListener("click", stop);
-  ui.mobilePlayBtn.addEventListener("click", start);
-  ui.mobileStopBtn.addEventListener("click", stop);
+  ui.playToggleBtn.addEventListener("click", togglePlayback);
+  ui.mobilePlayToggleBtn.addEventListener("click", togglePlayback);
   ui.tapBtn.addEventListener("click", commitTapTempo);
 
   window.addEventListener("keydown", (e) => {
