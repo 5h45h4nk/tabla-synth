@@ -1,4 +1,4 @@
-const CACHE_NAME = "tabla-loop-lab-v2";
+const CACHE_NAME = "tabla-loop-lab-v3";
 
 const APP_SHELL = [
   "./",
@@ -52,8 +52,15 @@ self.addEventListener("fetch", (event) => {
 
   const isPageRequest =
     request.mode === "navigate" || request.destination === "document" || request.url.endsWith(".html");
+  const isAppShellAsset =
+    request.destination === "script" ||
+    request.destination === "style" ||
+    request.url.endsWith(".js") ||
+    request.url.endsWith(".css") ||
+    request.url.endsWith(".webmanifest");
+  const isSampleAsset = url.pathname.includes("/assets/samples/");
 
-  if (isPageRequest) {
+  if (isPageRequest || isAppShellAsset) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -64,6 +71,24 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => caches.match(request).then((cached) => cached || caches.match("index.html")))
+    );
+    return;
+  }
+
+  if (isSampleAsset) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) {
+          return cached;
+        }
+        return fetch(request).then((response) => {
+          if (response && response.status === 200 && response.type === "basic") {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+      })
     );
     return;
   }
