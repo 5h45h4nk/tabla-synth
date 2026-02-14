@@ -121,8 +121,6 @@ const ui = {
   stopBtn: document.getElementById("stopBtn"),
   tapBtn: document.getElementById("tapBtn"),
   tapValue: document.getElementById("tapValue"),
-  stickyTempo: document.getElementById("stickyTempo"),
-  stickyTuning: document.getElementById("stickyTuning"),
   beatGrid: document.getElementById("beatGrid"),
   taalName: document.getElementById("taalName"),
   cycleMeta: document.getElementById("cycleMeta"),
@@ -171,7 +169,6 @@ function setTempo(value) {
   ui.tempoValue.textContent = String(clamped);
   ui.tempoInput.value = String(clamped);
   ui.tempo.value = String(nearestSliderTempo(clamped));
-  ui.stickyTempo.textContent = `${clamped} BPM`;
 }
 
 function changeTempo(delta) {
@@ -193,7 +190,6 @@ function updateTuningUI() {
   ui.tuningValue.textContent = note;
   ui.tuningSemitones.textContent = signed;
   ui.liveTuning.textContent = `Tuning: ${note} (${signed})`;
-  ui.stickyTuning.textContent = `${note} (${signed})`;
 }
 
 function setTuning(semitones) {
