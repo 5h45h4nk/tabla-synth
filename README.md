@@ -58,6 +58,7 @@ After install:
   - `Synth` (always uses built-in synthesized tabla)
 - Set tempo with slider in 5 BPM steps (40-700)
 - Enter exact tempo with numeric BPM input (40-700)
+- Tabla tuning slider: chromatic pitch shift from -12 to +12 semitones (all bols)
 - Tap tempo button (`Tap x2+`) to set BPM from your hand taps
 - Play/Stop loop
 - Click beat numbers to preview individual bols

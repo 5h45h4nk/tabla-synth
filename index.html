@@ -50,6 +50,32 @@
           </div>
         </div>
 
+        <div class="field">
+          <div class="label-row">
+            <label for="tuning">Tabla Tuning</label>
+            <span><strong id="tuningValue">C</strong> (<span id="tuningSemitones">0</span>)</span>
+          </div>
+          <input id="tuning" type="range" min="-12" max="12" step="1" value="0" list="noteMarkers" />
+          <datalist id="noteMarkers">
+            <option value="-12" label="C"></option>
+            <option value="-10" label="D"></option>
+            <option value="-8" label="E"></option>
+            <option value="-7" label="F"></option>
+            <option value="-5" label="G"></option>
+            <option value="-3" label="A"></option>
+            <option value="-1" label="B"></option>
+            <option value="0" label="C"></option>
+            <option value="2" label="D"></option>
+            <option value="4" label="E"></option>
+            <option value="5" label="F"></option>
+            <option value="7" label="G"></option>
+            <option value="9" label="A"></option>
+            <option value="11" label="B"></option>
+            <option value="12" label="C"></option>
+          </datalist>
+          <div id="tuningMarkers" class="tuning-markers"></div>
+        </div>
+
         <div class="actions">
           <button id="playBtn" class="btn primary">Play</button>
           <button id="stopBtn" class="btn ghost">Stop</button>
@@ -69,6 +95,7 @@
         </div>
         <div class="live-panel">
           <span class="label">Now Playing</span>
+          <span id="liveTuning" class="live-tuning">Tuning: C (0)</span>
           <div class="live-main">
             <strong id="liveBeatNumber">--</strong>
             <span id="liveBeatBol">-</span>

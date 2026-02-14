@@ -109,6 +109,10 @@ const ui = {
   tempo: document.getElementById("tempo"),
   tempoInput: document.getElementById("tempoInput"),
   tempoValue: document.getElementById("tempoValue"),
+  tuning: document.getElementById("tuning"),
+  tuningValue: document.getElementById("tuningValue"),
+  tuningSemitones: document.getElementById("tuningSemitones"),
+  tuningMarkers: document.getElementById("tuningMarkers"),
   playBtn: document.getElementById("playBtn"),
   stopBtn: document.getElementById("stopBtn"),
   tapBtn: document.getElementById("tapBtn"),
@@ -118,6 +122,7 @@ const ui = {
   cycleMeta: document.getElementById("cycleMeta"),
   liveBeatNumber: document.getElementById("liveBeatNumber"),
   liveBeatBol: document.getElementById("liveBeatBol"),
+  liveTuning: document.getElementById("liveTuning"),
   audioStatus: document.getElementById("audioStatus"),
 };
 
@@ -136,6 +141,7 @@ const state = {
   samplesReady: false,
   soundPack: "auto",
   tapTimes: [],
+  tuningSemitones: 0,
 };
 
 const LOOK_AHEAD_MS = 25;
@@ -143,6 +149,7 @@ const SCHEDULE_AHEAD_SEC = 0.1;
 const TEMPO_MIN = Number(ui.tempo.min);
 const TEMPO_MAX = Number(ui.tempo.max);
 const TEMPO_SLIDER_STEP = Number(ui.tempo.step) || 5;
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 function clampTempo(value) {
   return Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, value));
@@ -162,6 +169,38 @@ function setTempo(value) {
 
 function changeTempo(delta) {
   setTempo(state.tempo + delta);
+}
+
+function tuningPlaybackRate() {
+  return 2 ** (state.tuningSemitones / 12);
+}
+
+function semitonesToNoteName(semitones) {
+  const idx = ((semitones % 12) + 12) % 12;
+  return NOTE_NAMES[idx];
+}
+
+function updateTuningUI() {
+  const note = semitonesToNoteName(state.tuningSemitones);
+  const signed = state.tuningSemitones > 0 ? `+${state.tuningSemitones}` : `${state.tuningSemitones}`;
+  ui.tuningValue.textContent = note;
+  ui.tuningSemitones.textContent = signed;
+  ui.liveTuning.textContent = `Tuning: ${note} (${signed})`;
+}
+
+function setTuning(semitones) {
+  const clamped = Math.max(-12, Math.min(12, semitones));
+  state.tuningSemitones = clamped;
+  ui.tuning.value = String(clamped);
+  updateTuningUI();
+}
+
+function renderTuningMarkers() {
+  const labels = [];
+  for (let semitone = -12; semitone <= 12; semitone += 1) {
+    labels.push(semitonesToNoteName(semitone));
+  }
+  ui.tuningMarkers.innerHTML = labels.map((note) => `<span>${note}</span>`).join("");
 }
 
 function commitTempoInput() {
@@ -310,7 +349,7 @@ function playSample(sampleId, time, gainValue = 1, playbackRate = 1) {
   const src = state.context.createBufferSource();
   const gain = state.context.createGain();
   src.buffer = buffer;
-  src.playbackRate.setValueAtTime(playbackRate, time);
+  src.playbackRate.setValueAtTime(playbackRate * tuningPlaybackRate(), time);
   gain.gain.setValueAtTime(gainValue, time);
   src.connect(gain);
   gain.connect(state.master);
@@ -335,7 +374,7 @@ function playBolWithSamples(bol, time) {
 function playDayan(time, freq = 540, decay = 0.16, level = 0.34) {
   const osc = state.context.createOscillator();
   osc.type = "triangle";
-  osc.frequency.setValueAtTime(freq, time);
+  osc.frequency.setValueAtTime(freq * tuningPlaybackRate(), time);
   const env = percussiveGain(time, 0.002, decay, level);
   osc.connect(env);
   osc.start(time);
@@ -345,8 +384,9 @@ function playDayan(time, freq = 540, decay = 0.16, level = 0.34) {
 function playBayan(time, freqStart = 170, freqEnd = 110, decay = 0.22, level = 0.48) {
   const osc = state.context.createOscillator();
   osc.type = "sine";
-  osc.frequency.setValueAtTime(freqStart, time);
-  osc.frequency.exponentialRampToValueAtTime(freqEnd, time + 0.09);
+  const rate = tuningPlaybackRate();
+  osc.frequency.setValueAtTime(freqStart * rate, time);
+  osc.frequency.exponentialRampToValueAtTime(freqEnd * rate, time + 0.09);
   const env = percussiveGain(time, 0.002, decay, level);
   osc.connect(env);
   osc.start(time);
@@ -629,6 +669,10 @@ function bindEvents() {
     }
   });
 
+  ui.tuning.addEventListener("input", (e) => {
+    setTuning(Number(e.target.value));
+  });
+
   ui.taalSelect.addEventListener("change", (e) => {
     state.selectedTaal = e.target.value;
     renderBeatGrid();
@@ -682,9 +726,11 @@ function bindEvents() {
 
 renderTaalOptions();
 renderBeatGrid();
+renderTuningMarkers();
 bindEvents();
 refreshStatusForPack();
 setTempo(state.tempo);
+setTuning(state.tuningSemitones);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
