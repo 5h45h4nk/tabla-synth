@@ -44,8 +44,12 @@
             <label for="tempo">Tempo</label>
             <span><strong id="tempoValue">90</strong> BPM</span>
           </div>
-          <div class="tempo-controls">
+          <div class="slider-row">
+            <button id="tempoDownBtn" class="nudge-btn" type="button" aria-label="Tempo down">-</button>
             <input id="tempo" type="range" min="40" max="700" step="5" value="90" />
+            <button id="tempoUpBtn" class="nudge-btn" type="button" aria-label="Tempo up">+</button>
+          </div>
+          <div class="tempo-controls">
             <input id="tempoInput" type="number" min="40" max="700" step="1" value="90" />
           </div>
         </div>
@@ -55,7 +59,11 @@
             <label for="tuning">Tabla Tuning</label>
             <span><strong id="tuningValue">C</strong> (<span id="tuningSemitones">0</span>)</span>
           </div>
-          <input id="tuning" type="range" min="-12" max="12" step="1" value="0" list="noteMarkers" />
+          <div class="slider-row">
+            <button id="tuningDownBtn" class="nudge-btn" type="button" aria-label="Tuning down">-</button>
+            <input id="tuning" type="range" min="-12" max="12" step="1" value="0" list="noteMarkers" />
+            <button id="tuningUpBtn" class="nudge-btn" type="button" aria-label="Tuning up">+</button>
+          </div>
           <datalist id="noteMarkers">
             <option value="-12" label="C"></option>
             <option value="-10" label="D"></option>

@@ -100,14 +100,69 @@ select {
 }
 
 input[type="range"] {
-  accent-color: var(--accent);
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 44px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.9), rgba(251, 113, 133, 0.8));
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f8fafc;
+  border: 2px solid #0f172a;
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.45);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.9), rgba(251, 113, 133, 0.8));
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f8fafc;
+  border: 2px solid #0f172a;
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.45);
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 46px;
+  gap: 8px;
+  align-items: center;
+}
+
+.nudge-btn {
+  height: 44px;
+  width: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
 }
 
 .tuning-markers {
   display: grid;
   grid-template-columns: repeat(25, 1fr);
-  font-size: 0.58rem;
-  color: var(--muted);
+  font-size: 0.64rem;
+  color: #cbd5e1;
   gap: 2px;
 }
 
@@ -117,7 +172,7 @@ input[type="range"] {
 
 .tempo-controls {
   display: grid;
-  grid-template-columns: 1fr 110px;
+  grid-template-columns: 110px;
   gap: 10px;
   align-items: center;
 }
@@ -362,6 +417,16 @@ input[type="number"] {
 
   .tempo-controls {
     grid-template-columns: 1fr;
+  }
+
+  .slider-row {
+    grid-template-columns: 52px 1fr 52px;
+  }
+
+  .nudge-btn {
+    height: 48px;
+    width: 52px;
+    font-size: 1.3rem;
   }
 
   .live-main strong {

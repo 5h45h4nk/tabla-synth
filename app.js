@@ -108,8 +108,12 @@ const ui = {
   samplePack: document.getElementById("samplePack"),
   tempo: document.getElementById("tempo"),
   tempoInput: document.getElementById("tempoInput"),
+  tempoDownBtn: document.getElementById("tempoDownBtn"),
+  tempoUpBtn: document.getElementById("tempoUpBtn"),
   tempoValue: document.getElementById("tempoValue"),
   tuning: document.getElementById("tuning"),
+  tuningDownBtn: document.getElementById("tuningDownBtn"),
+  tuningUpBtn: document.getElementById("tuningUpBtn"),
   tuningValue: document.getElementById("tuningValue"),
   tuningSemitones: document.getElementById("tuningSemitones"),
   tuningMarkers: document.getElementById("tuningMarkers"),
@@ -673,6 +677,11 @@ function bindEvents() {
     setTuning(Number(e.target.value));
   });
 
+  ui.tempoDownBtn.addEventListener("click", () => changeTempo(-5));
+  ui.tempoUpBtn.addEventListener("click", () => changeTempo(5));
+  ui.tuningDownBtn.addEventListener("click", () => setTuning(state.tuningSemitones - 1));
+  ui.tuningUpBtn.addEventListener("click", () => setTuning(state.tuningSemitones + 1));
+
   ui.taalSelect.addEventListener("change", (e) => {
     state.selectedTaal = e.target.value;
     renderBeatGrid();
@@ -744,8 +753,11 @@ if ("serviceWorker" in navigator) {
       return;
     }
 
-    navigator.serviceWorker.register("service-worker.js").catch(() => {
-      // PWA install still works online if SW registration fails.
-    });
+    navigator.serviceWorker
+      .register("service-worker.js", { updateViaCache: "none" })
+      .then((registration) => registration.update())
+      .catch(() => {
+        // PWA install still works online if SW registration fails.
+      });
   });
 }
