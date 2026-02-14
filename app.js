@@ -119,6 +119,9 @@ const ui = {
   tuningMarkers: document.getElementById("tuningMarkers"),
   playBtn: document.getElementById("playBtn"),
   stopBtn: document.getElementById("stopBtn"),
+  mobileBar: document.getElementById("mobileBar"),
+  mobilePlayBtn: document.getElementById("mobilePlayBtn"),
+  mobileStopBtn: document.getElementById("mobileStopBtn"),
   tapBtn: document.getElementById("tapBtn"),
   tapValue: document.getElementById("tapValue"),
   beatGrid: document.getElementById("beatGrid"),
@@ -569,6 +572,13 @@ function setActiveBeat(idx) {
   ui.liveBeatBol.textContent = bol;
 }
 
+function setPlayUI(isPlaying) {
+  ui.playBtn.textContent = isPlaying ? "Playing" : "Play";
+  ui.playBtn.classList.toggle("is-playing", isPlaying);
+  ui.mobilePlayBtn.textContent = isPlaying ? "Playing" : "Play";
+  ui.mobilePlayBtn.classList.toggle("is-playing", isPlaying);
+}
+
 function scheduleBeat(time, idx, beatDuration) {
   const taal = currentTaal();
   triggerBol(taal.bols[idx], time, beatDuration);
@@ -603,8 +613,7 @@ async function start() {
   state.playing = true;
   state.currentStep = 0;
   state.nextNoteTime = state.context.currentTime + 0.06;
-  ui.playBtn.textContent = "Playing";
-  ui.playBtn.classList.add("is-playing");
+  setPlayUI(true);
   state.timerId = window.setInterval(scheduler, LOOK_AHEAD_MS);
 }
 
@@ -617,8 +626,7 @@ function stop() {
     clearInterval(state.timerId);
     state.timerId = null;
   }
-  ui.playBtn.textContent = "Play";
-  ui.playBtn.classList.remove("is-playing");
+  setPlayUI(false);
   setActiveBeat(-1);
 }
 
@@ -650,6 +658,13 @@ function isTypingTarget(el) {
   }
   const tag = el.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
+function syncMobileBarVisibility() {
+  if (!ui.mobileBar) {
+    return;
+  }
+  ui.mobileBar.classList.toggle("hidden", isTypingTarget(document.activeElement));
 }
 
 function bindEvents() {
@@ -706,6 +721,8 @@ function bindEvents() {
 
   ui.playBtn.addEventListener("click", start);
   ui.stopBtn.addEventListener("click", stop);
+  ui.mobilePlayBtn.addEventListener("click", start);
+  ui.mobileStopBtn.addEventListener("click", stop);
   ui.tapBtn.addEventListener("click", commitTapTempo);
 
   window.addEventListener("keydown", (e) => {
@@ -731,6 +748,11 @@ function bindEvents() {
       changeTempo(-5);
     }
   });
+
+  window.addEventListener("focusin", syncMobileBarVisibility);
+  window.addEventListener("focusout", () => {
+    window.setTimeout(syncMobileBarVisibility, 0);
+  });
 }
 
 renderTaalOptions();
@@ -740,6 +762,8 @@ bindEvents();
 refreshStatusForPack();
 setTempo(state.tempo);
 setTuning(state.tuningSemitones);
+setPlayUI(state.playing);
+syncMobileBarVisibility();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
