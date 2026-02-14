@@ -122,6 +122,8 @@ const ui = {
   mobileBar: document.getElementById("mobileBar"),
   mobilePlayBtn: document.getElementById("mobilePlayBtn"),
   mobileStopBtn: document.getElementById("mobileStopBtn"),
+  mobileBeatNumber: document.getElementById("mobileBeatNumber"),
+  mobileBeatBol: document.getElementById("mobileBeatBol"),
   tapBtn: document.getElementById("tapBtn"),
   tapValue: document.getElementById("tapValue"),
   beatGrid: document.getElementById("beatGrid"),
@@ -564,12 +566,16 @@ function setActiveBeat(idx) {
   if (idx < 0) {
     ui.liveBeatNumber.textContent = "--";
     ui.liveBeatBol.textContent = "-";
+    ui.mobileBeatNumber.textContent = "--";
+    ui.mobileBeatBol.textContent = "-";
     return;
   }
   const taal = currentTaal();
   const bol = taal.bols[idx] || "-";
   ui.liveBeatNumber.textContent = String(idx + 1);
   ui.liveBeatBol.textContent = bol;
+  ui.mobileBeatNumber.textContent = String(idx + 1);
+  ui.mobileBeatBol.textContent = bol;
 }
 
 function setPlayUI(isPlaying) {
