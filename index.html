@@ -25,18 +25,23 @@
       </header>
 
       <section class="panel controls">
+        <details class="advanced-menu">
+          <summary class="advanced-toggle">☰ Advanced</summary>
+          <div class="advanced-panel">
+            <div class="field">
+              <label for="samplePack">Sound Pack</label>
+              <select id="samplePack">
+                <option value="auto">Auto (Real then fallback)</option>
+                <option value="sonicpi">Sonic Pi (Real)</option>
+                <option value="synth">Synth (Built-in)</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
         <div class="field">
           <label for="taalSelect">Taal</label>
           <select id="taalSelect"></select>
-        </div>
-
-        <div class="field">
-          <label for="samplePack">Sound Pack</label>
-          <select id="samplePack">
-            <option value="auto">Auto (Real then fallback)</option>
-            <option value="sonicpi">Sonic Pi (Real)</option>
-            <option value="synth">Synth (Built-in)</option>
-          </select>
         </div>
 
         <div class="field">

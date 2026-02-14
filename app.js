@@ -578,10 +578,14 @@ function setActiveBeat(idx) {
 
 function setPlayUI(isPlaying) {
   const label = isPlaying ? "Stop" : "Play";
-  ui.playToggleBtn.textContent = label;
-  ui.playToggleBtn.classList.toggle("is-playing", isPlaying);
-  ui.mobilePlayToggleBtn.textContent = label;
-  ui.mobilePlayToggleBtn.classList.toggle("is-playing", isPlaying);
+  if (ui.playToggleBtn) {
+    ui.playToggleBtn.textContent = label;
+    ui.playToggleBtn.classList.toggle("is-playing", isPlaying);
+  }
+  if (ui.mobilePlayToggleBtn) {
+    ui.mobilePlayToggleBtn.textContent = label;
+    ui.mobilePlayToggleBtn.classList.toggle("is-playing", isPlaying);
+  }
 }
 
 function scheduleBeat(time, idx, beatDuration) {
@@ -715,10 +719,12 @@ function bindEvents() {
     renderBeatGrid();
   });
 
-  ui.samplePack.addEventListener("change", (e) => {
-    state.soundPack = e.target.value;
-    refreshStatusForPack();
-  });
+  if (ui.samplePack) {
+    ui.samplePack.addEventListener("change", (e) => {
+      state.soundPack = e.target.value;
+      refreshStatusForPack();
+    });
+  }
 
   ui.beatGrid.addEventListener("click", (e) => {
     const trigger = e.target.closest(".count-trigger");
@@ -732,8 +738,12 @@ function bindEvents() {
     previewBeat(idx);
   });
 
-  ui.playToggleBtn.addEventListener("click", togglePlayback);
-  ui.mobilePlayToggleBtn.addEventListener("click", togglePlayback);
+  if (ui.playToggleBtn) {
+    ui.playToggleBtn.addEventListener("click", togglePlayback);
+  }
+  if (ui.mobilePlayToggleBtn) {
+    ui.mobilePlayToggleBtn.addEventListener("click", togglePlayback);
+  }
   ui.tapBtn.addEventListener("click", commitTapTempo);
 
   window.addEventListener("keydown", (e) => {

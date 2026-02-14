@@ -75,6 +75,35 @@ body {
   gap: 16px;
 }
 
+.advanced-toggle {
+  list-style: none;
+  user-select: none;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.advanced-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-menu {
+  justify-self: end;
+}
+
+.advanced-panel {
+  margin-top: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.48);
+  border-radius: 14px;
+  padding: 12px;
+}
+
 .field {
   display: grid;
   gap: 8px;
