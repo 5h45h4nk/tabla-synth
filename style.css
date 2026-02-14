@@ -140,7 +140,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .slider-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 46px 1fr 46px;
   gap: 8px;
   align-items: center;
 }
@@ -155,13 +156,6 @@ input[type="range"]::-moz-range-thumb {
   font: inherit;
   font-size: 1.2rem;
   cursor: pointer;
-  flex: 0 0 auto;
-}
-
-.slider-row input[type="range"] {
-  flex: 1 1 auto;
-  min-width: 0;
-  touch-action: pan-y;
 }
 
 .tuning-markers {
@@ -423,6 +417,10 @@ input[type="number"] {
 
   .tempo-controls {
     grid-template-columns: 1fr;
+  }
+
+  .slider-row {
+    grid-template-columns: 52px 1fr 52px;
   }
 
   .nudge-btn {
