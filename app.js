@@ -797,6 +797,15 @@ function bindEvents() {
     }
   });
 
+  // On tap/focus, select full tempo so user can replace it in one shot.
+  ui.tempoInput.addEventListener("focus", () => {
+    window.setTimeout(() => ui.tempoInput.select(), 0);
+  });
+
+  ui.tempoInput.addEventListener("click", () => {
+    ui.tempoInput.select();
+  });
+
   ui.tuning.addEventListener("input", (e) => {
     setTuning(Number(e.target.value));
   });

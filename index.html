@@ -55,7 +55,17 @@
             <button id="tempoUpBtn" class="nudge-btn" type="button" aria-label="Tempo up">+</button>
           </div>
           <div class="tempo-controls">
-            <input id="tempoInput" type="number" min="40" max="700" step="1" value="90" />
+            <input
+              id="tempoInput"
+              type="number"
+              min="40"
+              max="700"
+              step="1"
+              value="90"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              enterkeyhint="done"
+            />
           </div>
         </div>
 
