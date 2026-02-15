@@ -185,6 +185,8 @@ input[type="range"]::-moz-range-thumb {
   font: inherit;
   font-size: 1.2rem;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tuning-markers {
@@ -270,6 +272,8 @@ input[type="number"] {
   padding: 11px 16px;
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 140ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn:active {

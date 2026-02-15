@@ -806,6 +806,12 @@ function bindEvents() {
   ui.tuningDownBtn.addEventListener("click", () => setTuning(state.tuningSemitones - 1));
   ui.tuningUpBtn.addEventListener("click", () => setTuning(state.tuningSemitones + 1));
 
+  [ui.tempoDownBtn, ui.tempoUpBtn, ui.tuningDownBtn, ui.tuningUpBtn].forEach((btn) => {
+    btn.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+    });
+  });
+
   ui.taalSelect.addEventListener("change", (e) => {
     state.selectedTaal = e.target.value;
     renderBeatGrid();
