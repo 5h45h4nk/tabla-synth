@@ -490,6 +490,7 @@ input[type="number"] {
     bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 1000;
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     padding: 14px 12px 16px;
     min-height: 152px;
