@@ -484,27 +484,30 @@ input[type="number"] {
     flex: 1 1 100%;
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 10px;
     color: #e2e8f0;
-    padding: 2px 4px 0;
+    padding: 4px 6px 2px;
   }
 
   .mobile-now .label {
-    font-size: 0.72rem;
+    font-size: 0.95rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: #fde68a;
   }
 
   .mobile-now strong {
     font-family: "Sora", sans-serif;
-    font-size: 1.15rem;
+    font-size: 2rem;
     line-height: 1;
     color: #f8fafc;
   }
 
-  .mobile-now span {
-    font-size: 0.92rem;
+  .mobile-now #mobileBeatBol {
+    font-family: "Sora", sans-serif;
+    font-size: 1.7rem;
+    line-height: 1;
   }
 
   .tempo-controls {
