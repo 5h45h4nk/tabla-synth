@@ -217,7 +217,7 @@ function updateTuningUI() {
   const signed = state.tuningSemitones > 0 ? `+${state.tuningSemitones}` : `${state.tuningSemitones}`;
   ui.tuningValue.textContent = note;
   ui.tuningSemitones.textContent = signed;
-  ui.liveTuning.textContent = `Tuning: ${note} (${signed})`;
+  ui.liveTuning.textContent = `Scale: ${note} (${signed})`;
 }
 
 function setTuning(semitones) {
@@ -769,11 +769,11 @@ function bindEvents() {
   }
 
   ui.beatGrid.addEventListener("click", (e) => {
-    const trigger = e.target.closest(".count-trigger");
-    if (!trigger) {
+    const beatEl = e.target.closest(".beat");
+    if (!beatEl) {
       return;
     }
-    const idx = Number(trigger.dataset.index);
+    const idx = Number(beatEl.dataset.index);
     if (!Number.isInteger(idx)) {
       return;
     }

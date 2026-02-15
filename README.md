@@ -63,7 +63,7 @@ After install:
 - Set tempo with slider in 5 BPM steps (40-700)
 - Enter exact tempo with numeric BPM input (40-700)
 - Use `- / +` nudge buttons for easier mobile tempo and tuning control
-- Tabla tuning slider: chromatic pitch shift from -12 to +12 semitones (all bols)
+- Scale slider: chromatic pitch shift from -12 to +12 semitones (all bols)
 - Tap tempo button (`Tap x2+`) to set BPM from your hand taps
 - Play/Stop loop
 - Click beat numbers to preview individual bols
