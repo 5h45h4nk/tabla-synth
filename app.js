@@ -241,9 +241,7 @@ function renderTuningMarkers() {
 }
 
 function commitTempoInput() {
-  const cleaned = ui.tempoInput.value.replace(/[^\d]/g, "");
-  ui.tempoInput.value = cleaned;
-  const raw = Number(cleaned);
+  const raw = Number(ui.tempoInput.value);
   if (!Number.isFinite(raw)) {
     ui.tempoInput.value = String(state.tempo);
     return;
@@ -801,26 +799,11 @@ function bindEvents() {
 
   // On tap/focus, select full tempo so user can replace it in one shot.
   ui.tempoInput.addEventListener("focus", () => {
-    window.setTimeout(() => {
-      ui.tempoInput.select();
-      if (typeof ui.tempoInput.setSelectionRange === "function") {
-        ui.tempoInput.setSelectionRange(0, ui.tempoInput.value.length);
-      }
-    }, 0);
+    window.setTimeout(() => ui.tempoInput.select(), 0);
   });
 
   ui.tempoInput.addEventListener("click", () => {
     ui.tempoInput.select();
-    if (typeof ui.tempoInput.setSelectionRange === "function") {
-      ui.tempoInput.setSelectionRange(0, ui.tempoInput.value.length);
-    }
-  });
-
-  ui.tempoInput.addEventListener("input", () => {
-    const digitsOnly = ui.tempoInput.value.replace(/[^\d]/g, "");
-    if (ui.tempoInput.value !== digitsOnly) {
-      ui.tempoInput.value = digitsOnly;
-    }
   });
 
   ui.tuning.addEventListener("input", (e) => {
