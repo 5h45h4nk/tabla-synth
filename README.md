@@ -18,9 +18,13 @@ Sample files are stored in `assets/samples/` and mapped to bols in `app.js`.
 ### Downloaded sample files
 - `tabla_na.flac`
 - `tabla_na_s.flac`
+- `tabla_re.flac`
 - `tabla_tun1.flac`
+- `tabla_tun2.flac`
+- `tabla_tun3.flac`
 - `tabla_te1.flac`
 - `tabla_te2.flac`
+- `tabla_te_m.flac`
 - `tabla_te_ne.flac`
 - `tabla_tas1.flac`
 - `tabla_ke1.flac`
@@ -52,7 +56,7 @@ After install:
 
 ## Controls
 - Select a taal
-- Select a sound pack:
+- Open `☰ Advanced` for sound pack options:
   - `Auto` (tries real samples first, falls back to synth)
   - `Sonic Pi (Real)` (prioritizes real sample playback)
   - `Synth` (always uses built-in synthesized tabla)

@@ -61,6 +61,20 @@ const TAALS = {
     taali: [],
     khali: [2],
   },
+  dadra: {
+    name: "Dadra",
+    bols: ["Dha", "Dhin", "Na", "Dha", "Tin", "Na"],
+    sam: 0,
+    taali: [],
+    khali: [3],
+  },
+  jhaptaal: {
+    name: "Jhaptaal",
+    bols: ["Dhin", "Na", "Dhin", "DhiDhi", "NaNa", "Tin", "Na", "Dhin", "DhiDhi", "NaNa"],
+    sam: 0,
+    taali: [2, 7],
+    khali: [5],
+  },
 };
 
 const SAMPLE_FILES = {
@@ -69,12 +83,16 @@ const SAMPLE_FILES = {
   tabla_tun1: "assets/samples/tabla_tun1.flac",
   tabla_te1: "assets/samples/tabla_te1.flac",
   tabla_te2: "assets/samples/tabla_te2.flac",
+  tabla_te_m: "assets/samples/tabla_te_m.flac",
   tabla_te_ne: "assets/samples/tabla_te_ne.flac",
   tabla_tas1: "assets/samples/tabla_tas1.flac",
+  tabla_re: "assets/samples/tabla_re.flac",
   tabla_ke1: "assets/samples/tabla_ke1.flac",
   tabla_ghe1: "assets/samples/tabla_ghe1.flac",
   tabla_ghe2: "assets/samples/tabla_ghe2.flac",
   tabla_dhec: "assets/samples/tabla_dhec.flac",
+  tabla_tun2: "assets/samples/tabla_tun2.flac",
+  tabla_tun3: "assets/samples/tabla_tun3.flac",
 };
 
 const BOL_SAMPLE_MAP = {
@@ -86,10 +104,10 @@ const BOL_SAMPLE_MAP = {
     { choices: ["tabla_ghe2", "tabla_ghe1"], gain: 0.88 },
     { choices: ["tabla_tun1", "tabla_na"], gain: 0.68 },
   ],
-  Dhi: [{ choices: ["tabla_tun1", "tabla_na"], gain: 0.78 }],
-  Tin: [{ choices: ["tabla_te_ne", "tabla_te2"], gain: 0.74 }],
+  Dhi: [{ id: "tabla_tun1", gain: 0.8 }],
+  Tin: [{ id: "tabla_tun1", gain: 0.72, rate: 1.42 }],
   Ta: [{ choices: ["tabla_tas1", "tabla_te1"], gain: 0.72 }],
-  Na: [{ choices: ["tabla_na", "tabla_na_s"], gain: 0.82 }],
+  Na: [{ id: "tabla_na", gain: 0.86 }],
   Ge: [{ choices: ["tabla_ghe1", "tabla_ghe2"], gain: 0.94 }],
   Ti: [{ choices: ["tabla_te1", "tabla_te2"], gain: 0.7 }],
   Ka: [{ choices: ["tabla_ke1", "tabla_tas1"], gain: 0.7 }],
@@ -101,6 +119,13 @@ const COMBINED_BOLS = {
   NaTi: ["Na", "Ti"],
   NaKa: ["Na", "Ka"],
   DhiNa: ["Dhi", "Na"],
+  DhiDhi: ["Dhi", "Dhi"],
+  NaNa: ["Na", "Na"],
+};
+
+const COMBINED_SPLIT_RATIO = {
+  DhiDhi: 0.5,
+  NaNa: 0.5,
 };
 
 const ui = {
@@ -466,7 +491,8 @@ function triggerBaseBol(bol, time) {
 function triggerBol(bol, time, beatDuration) {
   const combined = COMBINED_BOLS[bol];
   if (combined) {
-    const split = Math.max(0.04, beatDuration * 0.45);
+    const splitRatio = COMBINED_SPLIT_RATIO[bol] ?? 0.45;
+    const split = Math.max(0.035, beatDuration * splitRatio);
     triggerBaseBol(combined[0], time);
     triggerBaseBol(combined[1], time + split);
     return;

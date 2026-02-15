@@ -16,11 +16,15 @@ const SAMPLE_FILES = [
   "assets/samples/tabla_ke1.flac",
   "assets/samples/tabla_na.flac",
   "assets/samples/tabla_na_s.flac",
+  "assets/samples/tabla_re.flac",
   "assets/samples/tabla_tas1.flac",
   "assets/samples/tabla_te1.flac",
   "assets/samples/tabla_te2.flac",
+  "assets/samples/tabla_te_m.flac",
   "assets/samples/tabla_te_ne.flac",
   "assets/samples/tabla_tun1.flac",
+  "assets/samples/tabla_tun2.flac",
+  "assets/samples/tabla_tun3.flac",
 ];
 
 self.addEventListener("install", (event) => {
