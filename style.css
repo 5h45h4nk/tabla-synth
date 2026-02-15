@@ -489,9 +489,10 @@ input[type="number"] {
     right: 12px;
     bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 1000;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(148px, 42%) 1fr;
+    gap: 12px;
+    align-items: center;
     padding: 14px 12px 16px;
     min-height: 152px;
     border-radius: 16px;
@@ -505,20 +506,28 @@ input[type="number"] {
   }
 
   .mobile-bar .btn {
-    flex: 1 1 100%;
+    width: 100%;
     min-height: 48px;
   }
 
   .mobile-now {
-    flex: 1 1 100%;
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "label ring"
+      "label bol";
+    align-items: center;
+    justify-items: center;
+    column-gap: 10px;
+    row-gap: 4px;
     color: #e2e8f0;
-    padding: 8px 8px 4px;
+    padding: 6px 6px 4px;
+    min-width: 0;
   }
 
   .mobile-now .label {
+    grid-area: label;
     font-size: 0.95rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -531,14 +540,22 @@ input[type="number"] {
   }
 
   .beat-ring.mobile {
+    grid-area: ring;
+    justify-self: center;
     --ring-size: 64px;
     --ring-thickness: 5px;
   }
 
   .mobile-now #mobileBeatBol {
+    grid-area: bol;
+    justify-self: center;
     font-family: "Sora", sans-serif;
-    font-size: 1.7rem;
+    font-size: 1.35rem;
     line-height: 1;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .tempo-controls {
