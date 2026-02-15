@@ -147,6 +147,7 @@ const ui = {
   mobilePlayToggleBtn: document.getElementById("mobilePlayToggleBtn"),
   mobileBeatNumber: document.getElementById("mobileBeatNumber"),
   mobileBeatBol: document.getElementById("mobileBeatBol"),
+  mobileBeatRing: document.getElementById("mobileBeatRing"),
   tapBtn: document.getElementById("tapBtn"),
   tapValue: document.getElementById("tapValue"),
   beatGrid: document.getElementById("beatGrid"),
@@ -154,6 +155,7 @@ const ui = {
   cycleMeta: document.getElementById("cycleMeta"),
   liveBeatNumber: document.getElementById("liveBeatNumber"),
   liveBeatBol: document.getElementById("liveBeatBol"),
+  liveBeatRing: document.getElementById("liveBeatRing"),
   liveTuning: document.getElementById("liveTuning"),
   audioStatus: document.getElementById("audioStatus"),
 };
@@ -167,6 +169,9 @@ const state = {
   currentStep: 0,
   nextNoteTime: 0,
   timerId: null,
+  beatProgressRaf: null,
+  beatProgressStartMs: 0,
+  beatProgressDurationMs: 0,
   sampleBuffers: new Map(),
   loadingSamples: false,
   sampleLoadAttempted: false,
@@ -578,6 +583,7 @@ async function previewBeat(idx) {
   const beatDuration = 60 / state.tempo;
   triggerBol(bol, state.context.currentTime + 0.01, beatDuration);
   setActiveBeat(idx);
+  startBeatProgress(beatDuration);
   flashBeatPreview(idx);
 }
 
@@ -592,6 +598,7 @@ function setActiveBeat(idx) {
     ui.liveBeatBol.textContent = "-";
     ui.mobileBeatNumber.textContent = "--";
     ui.mobileBeatBol.textContent = "-";
+    setBeatProgress(0);
     return;
   }
   const taal = currentTaal();
@@ -614,6 +621,45 @@ function setPlayUI(isPlaying) {
   }
 }
 
+function setBeatProgress(progress) {
+  const value = Math.max(0, Math.min(1, progress));
+  if (ui.liveBeatRing) {
+    ui.liveBeatRing.style.setProperty("--progress", String(value));
+  }
+  if (ui.mobileBeatRing) {
+    ui.mobileBeatRing.style.setProperty("--progress", String(value));
+  }
+}
+
+function stopBeatProgressLoop() {
+  if (state.beatProgressRaf) {
+    cancelAnimationFrame(state.beatProgressRaf);
+    state.beatProgressRaf = null;
+  }
+}
+
+function runBeatProgressLoop() {
+  stopBeatProgressLoop();
+  const tick = () => {
+    const elapsed = performance.now() - state.beatProgressStartMs;
+    const progress = state.beatProgressDurationMs > 0 ? elapsed / state.beatProgressDurationMs : 0;
+    setBeatProgress(progress);
+    if (progress < 1) {
+      state.beatProgressRaf = requestAnimationFrame(tick);
+    } else {
+      state.beatProgressRaf = null;
+    }
+  };
+  state.beatProgressRaf = requestAnimationFrame(tick);
+}
+
+function startBeatProgress(durationSec) {
+  state.beatProgressStartMs = performance.now();
+  state.beatProgressDurationMs = Math.max(60, durationSec * 1000);
+  setBeatProgress(0);
+  runBeatProgressLoop();
+}
+
 function setToggleDisabled(isDisabled, loadingLabel = "Loading...") {
   if (ui.playToggleBtn) {
     ui.playToggleBtn.disabled = isDisabled;
@@ -634,7 +680,10 @@ function scheduleBeat(time, idx, beatDuration) {
   triggerBol(taal.bols[idx], time, beatDuration);
 
   const deltaMs = Math.max(0, (time - state.context.currentTime) * 1000);
-  setTimeout(() => setActiveBeat(idx), deltaMs);
+  setTimeout(() => {
+    setActiveBeat(idx);
+    startBeatProgress(beatDuration);
+  }, deltaMs);
 }
 
 function scheduler() {
@@ -678,6 +727,7 @@ function stop() {
     state.timerId = null;
   }
   setPlayUI(false);
+  stopBeatProgressLoop();
   setActiveBeat(-1);
 }
 
