@@ -8,6 +8,7 @@ A lightweight web app for bansuri practice with selectable taals and tempo contr
 - Dadra (6 beats)
 - Jhaptaal (10 beats)
 - Chautaal (12 beats) — Dha Dha | Dhin Ta | Kita Dha | Dhin Ta | Tita Kata | Gadi Gena
+- Ektaal (12 beats) — Dhin Dhin | DhaGe Tirakita | Tu Na Na | Kat Ta | DhaGe Tirakita | Dhin Na Na
 
 ## Tabla Sound Resources Used
 This project now uses real tabla one-shot samples (FLAC) for primary playback.

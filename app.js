@@ -82,6 +82,13 @@ const TAALS = {
     taali: [4, 8],
     khali: [2, 6],
   },
+  ektaal: {
+    name: "Ektaal",
+    bols: ["Dhin", "Dhin", "DhaGe", "Tirakita", "Tu", "NaNa", "Kat", "Ta", "DhaGe", "Tirakita", "Dhin", "NaNa"],
+    sam: 0,
+    taali: [4, 8, 10],
+    khali: [2, 6],
+  },
 };
 
 const SAMPLE_FILES = {
@@ -112,12 +119,14 @@ const BOL_SAMPLE_MAP = {
     { choices: ["tabla_tun1", "tabla_na"], gain: 0.68 },
   ],
   Dhi: [{ id: "tabla_tun1", gain: 0.8 }],
+  Tu: [{ id: "tabla_tun1", gain: 0.82 }],
   Tin: [{ id: "tabla_tun1", gain: 0.72, rate: 1.42 }],
   Ta: [{ choices: ["tabla_tas1", "tabla_te1"], gain: 0.72 }],
   Na: [{ id: "tabla_na", gain: 0.86 }],
   Ge: [{ choices: ["tabla_ghe1", "tabla_ghe2"], gain: 0.94 }],
   Ti: [{ choices: ["tabla_te1", "tabla_te2"], gain: 0.7 }],
   Ka: [{ choices: ["tabla_ke1", "tabla_tas1"], gain: 0.7 }],
+  Kat: [{ choices: ["tabla_te1", "tabla_te2"], gain: 0.68 }],
 };
 
 const COMBINED_BOLS = {
@@ -133,6 +142,7 @@ const COMBINED_BOLS = {
   Kata: ["Ka", "Ta"],
   Gadi: ["Ge", "Dhi"],
   Gena: ["Ge", "Na"],
+  Tirakita: ["Ti", "Ka", "Ti", "Ta"],
 };
 
 const COMBINED_SPLIT_RATIO = {
@@ -484,6 +494,9 @@ function triggerBaseBol(bol, time) {
     case "Dhi":
       playDayan(time, 580, 0.16, 0.3);
       break;
+    case "Tu":
+      playDayan(time, 560, 0.18, 0.3);
+      break;
     case "Tin":
       playDayan(time, 760, 0.1, 0.28);
       break;
@@ -504,6 +517,10 @@ function triggerBaseBol(bol, time) {
     case "Ka":
       playAttackNoise(time, 0.02, 0.12);
       break;
+    case "Kat":
+      playDayan(time, 860, 0.045, 0.2);
+      playAttackNoise(time, 0.022, 0.08);
+      break;
     default:
       playDayan(time, 620, 0.12, 0.22);
       break;
@@ -513,10 +530,9 @@ function triggerBaseBol(bol, time) {
 function triggerBol(bol, time, beatDuration) {
   const combined = COMBINED_BOLS[bol];
   if (combined) {
-    const splitRatio = COMBINED_SPLIT_RATIO[bol] ?? 0.5;
+    const splitRatio = combined.length === 2 ? (COMBINED_SPLIT_RATIO[bol] ?? 0.5) : 1 / combined.length;
     const split = Math.max(0.035, beatDuration * splitRatio);
-    triggerBaseBol(combined[0], time);
-    triggerBaseBol(combined[1], time + split);
+    combined.forEach((baseBol, index) => triggerBaseBol(baseBol, time + index * split));
     return;
   }
 
