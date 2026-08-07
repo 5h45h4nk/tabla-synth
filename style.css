@@ -208,6 +208,37 @@ input[type="range"]::-moz-range-thumb {
   align-items: center;
 }
 
+.tempo-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.tempo-presets-label {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.tempo-presets button {
+  min-height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 9px;
+  background: rgba(30, 41, 59, 0.72);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.tempo-presets button:hover,
+.tempo-presets button.active {
+  border-color: rgba(251, 191, 36, 0.9);
+  background: rgba(180, 83, 9, 0.5);
+  color: #fef3c7;
+}
+
 input[type="number"] {
   width: 100%;
   font: inherit;

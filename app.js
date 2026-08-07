@@ -163,6 +163,7 @@ const ui = {
   tempoDownBtn: document.getElementById("tempoDownBtn"),
   tempoUpBtn: document.getElementById("tempoUpBtn"),
   tempoValue: document.getElementById("tempoValue"),
+  tempoPresets: document.getElementById("tempoPresets"),
   tuning: document.getElementById("tuning"),
   tuningDownBtn: document.getElementById("tuningDownBtn"),
   tuningUpBtn: document.getElementById("tuningUpBtn"),
@@ -229,6 +230,13 @@ function setTempo(value) {
   ui.tempoValue.textContent = String(clamped);
   ui.tempoInput.value = String(clamped);
   ui.tempo.value = String(nearestSliderTempo(clamped));
+  if (ui.tempoPresets) {
+    ui.tempoPresets.querySelectorAll("button[data-tempo]").forEach((button) => {
+      const isActive = Number(button.dataset.tempo) === clamped;
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+  }
 }
 
 function changeTempo(delta) {
@@ -845,6 +853,14 @@ function bindEvents() {
 
   ui.tempoDownBtn.addEventListener("click", () => changeTempo(-5));
   ui.tempoUpBtn.addEventListener("click", () => changeTempo(5));
+  if (ui.tempoPresets) {
+    ui.tempoPresets.addEventListener("click", (e) => {
+      const button = e.target.closest("button[data-tempo]");
+      if (button) {
+        setTempo(Number(button.dataset.tempo));
+      }
+    });
+  }
   ui.tuningDownBtn.addEventListener("click", () => setTuning(state.tuningSemitones - 1));
   ui.tuningUpBtn.addEventListener("click", () => setTuning(state.tuningSemitones + 1));
 
