@@ -75,6 +75,13 @@ const TAALS = {
     taali: [2, 7],
     khali: [5],
   },
+  chautaal: {
+    name: "Chautaal",
+    bols: ["Dha", "Dha", "Dhin", "Ta", "Kita", "Dha", "Dhin", "Ta", "Tita", "Kata", "Gadi", "Gena"],
+    sam: 0,
+    taali: [4, 8],
+    khali: [2, 6],
+  },
 };
 
 const SAMPLE_FILES = {
@@ -121,6 +128,11 @@ const COMBINED_BOLS = {
   DhiNa: ["Dhi", "Na"],
   DhiDhi: ["Dhi", "Dhi"],
   NaNa: ["Na", "Na"],
+  Kita: ["Ka", "Ta"],
+  Tita: ["Ti", "Ta"],
+  Kata: ["Ka", "Ta"],
+  Gadi: ["Ge", "Dhi"],
+  Gena: ["Ge", "Na"],
 };
 
 const COMBINED_SPLIT_RATIO = {

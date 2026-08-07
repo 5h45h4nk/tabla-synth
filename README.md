@@ -5,6 +5,9 @@ A lightweight web app for bansuri practice with selectable taals and tempo contr
 ## Included Taals
 - Teentaal (16 beats)
 - Keherwa (8 beats)
+- Dadra (6 beats)
+- Jhaptaal (10 beats)
+- Chautaal (12 beats) — Dha Dha | Dhin Ta | Kita Dha | Dhin Ta | Tita Kata | Gadi Gena
 
 ## Tabla Sound Resources Used
 This project now uses real tabla one-shot samples (FLAC) for primary playback.
