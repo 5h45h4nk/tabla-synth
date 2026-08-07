@@ -138,6 +138,11 @@ const COMBINED_BOLS = {
 const COMBINED_SPLIT_RATIO = {
   DhiDhi: 0.5,
   NaNa: 0.5,
+  Kita: 0.5,
+  Tita: 0.5,
+  Kata: 0.5,
+  Gadi: 0.5,
+  Gena: 0.5,
 };
 
 const ui = {
@@ -508,7 +513,7 @@ function triggerBaseBol(bol, time) {
 function triggerBol(bol, time, beatDuration) {
   const combined = COMBINED_BOLS[bol];
   if (combined) {
-    const splitRatio = COMBINED_SPLIT_RATIO[bol] ?? 0.45;
+    const splitRatio = COMBINED_SPLIT_RATIO[bol] ?? 0.5;
     const split = Math.max(0.035, beatDuration * splitRatio);
     triggerBaseBol(combined[0], time);
     triggerBaseBol(combined[1], time + split);
