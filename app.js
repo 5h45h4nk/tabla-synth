@@ -193,7 +193,7 @@ const state = {
   master: null,
   tempo: Number(ui.tempo.value),
   playing: false,
-  selectedTaal: "teentaal",
+  selectedTaal: "teentaal_tika",
   currentStep: 0,
   nextNoteTime: 0,
   timerId: null,
@@ -569,6 +569,7 @@ function renderTaalOptions() {
     const opt = document.createElement("option");
     opt.value = key;
     opt.textContent = taal.name;
+    opt.selected = key === state.selectedTaal;
     ui.taalSelect.append(opt);
   });
 }
