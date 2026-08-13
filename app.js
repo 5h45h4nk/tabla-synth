@@ -1,30 +1,6 @@
 const TAALS = {
-  teentaal: {
-    name: "Teentaal",
-    bols: [
-      "Dha",
-      "Dhin",
-      "Dhin",
-      "Dha",
-      "Dha",
-      "Dhin",
-      "Dhin",
-      "Dha",
-      "Dha",
-      "Tin",
-      "Tin",
-      "Ta",
-      "Ta",
-      "Dhin",
-      "Dhin",
-      "Dha",
-    ],
-    sam: 0,
-    taali: [4, 12],
-    khali: [8],
-  },
   teentaal_tika: {
-    name: "Teentaal (TiKa Variant)",
+    name: "Teentaal",
     bols: [
       "Dha",
       "Dhin",
@@ -47,15 +23,8 @@ const TAALS = {
     taali: [4, 12],
     khali: [8],
   },
-  keherwa: {
-    name: "Keherwa",
-    bols: ["Dha", "Ge", "Na", "Ti", "Na", "Ka", "Dhi", "Na"],
-    sam: 0,
-    taali: [],
-    khali: [4],
-  },
   keherwa_4: {
-    name: "Keherwa (4 Beat Combined)",
+    name: "Keherwa",
     bols: ["DhaGe", "NaTi", "NaKa", "DhiNa"],
     sam: 0,
     taali: [],
@@ -568,7 +537,7 @@ function renderTaalOptions() {
   Object.entries(TAALS).forEach(([key, taal]) => {
     const opt = document.createElement("option");
     opt.value = key;
-    opt.textContent = taal.name;
+    opt.textContent = `${taal.name} (${taal.bols.length} beats)`;
     opt.selected = key === state.selectedTaal;
     ui.taalSelect.append(opt);
   });
