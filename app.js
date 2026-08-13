@@ -167,6 +167,7 @@ const state = {
   nextNoteTime: 0,
   timerId: null,
   beatProgressRaf: null,
+  wakeLock: null,
   beatProgressStartMs: 0,
   beatProgressDurationMs: 0,
   sampleBuffers: new Map(),
@@ -305,6 +306,32 @@ function setAudioStatus(text, tone = "muted") {
   if (tone === "error") {
     ui.audioStatus.classList.add("error");
   }
+}
+
+async function requestWakeLock() {
+  if (!state.playing || !navigator.wakeLock || state.wakeLock) {
+    return;
+  }
+  try {
+    state.wakeLock = await navigator.wakeLock.request("screen");
+    state.wakeLock.addEventListener("release", () => {
+      state.wakeLock = null;
+    });
+  } catch (_err) {
+    // Wake locks are optional and can be declined by the browser or device.
+  }
+}
+
+async function releaseWakeLock() {
+  if (!state.wakeLock) {
+    return;
+  }
+  try {
+    await state.wakeLock.release();
+  } catch (_err) {
+    // The browser may have already released the lock.
+  }
+  state.wakeLock = null;
 }
 
 function randomPick(items) {
@@ -725,6 +752,7 @@ async function start() {
   state.currentStep = 0;
   state.nextNoteTime = state.context.currentTime + 0.06;
   setPlayUI(true);
+  requestWakeLock();
   state.timerId = window.setInterval(scheduler, LOOK_AHEAD_MS);
 }
 
@@ -738,6 +766,7 @@ function stop() {
     state.timerId = null;
   }
   setPlayUI(false);
+  releaseWakeLock();
   stopBeatProgressLoop();
   setActiveBeat(-1);
 }
@@ -899,6 +928,11 @@ function bindEvents() {
   window.addEventListener("focusin", syncMobileBarVisibility);
   window.addEventListener("focusout", () => {
     window.setTimeout(syncMobileBarVisibility, 0);
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      requestWakeLock();
+    }
   });
 }
 
