@@ -114,16 +114,6 @@ const COMBINED_BOLS = {
   Tirakita: ["Ti", "Ka", "Ti", "Ta"],
 };
 
-const COMBINED_SPLIT_RATIO = {
-  DhiDhi: 0.5,
-  NaNa: 0.5,
-  Kita: 0.5,
-  Tita: 0.5,
-  Kata: 0.5,
-  Gadi: 0.5,
-  Gena: 0.5,
-};
-
 const ui = {
   taalSelect: document.getElementById("taalSelect"),
   samplePack: document.getElementById("samplePack"),
@@ -162,16 +152,23 @@ const state = {
   master: null,
   tempo: Number(ui.tempo.value),
   playing: false,
+  starting: false,
+  playbackGeneration: 0,
+  beatTimeouts: new Set(),
+  activeSources: new Set(),
+  noiseBuffer: null,
   selectedTaal: "teentaal_tika",
   currentStep: 0,
   nextNoteTime: 0,
   timerId: null,
   beatProgressRaf: null,
   wakeLock: null,
+  wakeLockPending: false,
   beatProgressStartMs: 0,
   beatProgressDurationMs: 0,
   sampleBuffers: new Map(),
   loadingSamples: false,
+  sampleLoadPromise: null,
   sampleLoadAttempted: false,
   samplesReady: false,
   soundPack: "auto",
@@ -247,7 +244,7 @@ function renderTuningMarkers() {
 
 function commitTempoInput() {
   const raw = Number(ui.tempoInput.value);
-  if (!Number.isFinite(raw)) {
+  if (!ui.tempoInput.value.trim() || !Number.isFinite(raw)) {
     ui.tempoInput.value = String(state.tempo);
     return;
   }
@@ -255,23 +252,56 @@ function commitTempoInput() {
 }
 
 function ensureAudio() {
-  if (!state.context) {
+  if (!state.context || state.context.state === "closed") {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     state.context = new AudioCtx();
     state.master = state.context.createGain();
     state.master.gain.value = 0.8;
     state.master.connect(state.context.destination);
+    const context = state.context;
+    context.addEventListener("statechange", () => {
+      if (state.context === context && state.playing && context.state !== "running") {
+        stop();
+        setAudioStatus("Audio was interrupted. Press Play to continue.", "muted");
+      }
+    });
+  }
+}
+
+function resetAudioContext() {
+  const context = state.context;
+  state.activeSources.forEach((source) => {
+    try { source.stop(); } catch (_err) { /* Already ended. */ }
+  });
+  state.activeSources.clear();
+  state.master?.disconnect();
+  state.context = null;
+  state.master = null;
+  state.noiseBuffer = null;
+  // Decoded AudioBuffers can be reused by the next context.
+  if (context && context.state !== "closed") {
+    context.close().catch(() => {});
   }
 }
 
 async function resumeAudioContext() {
   ensureAudio();
-  if (state.context.state === "suspended") {
+  const context = state.context;
+  if (context.state !== "running") {
+    let timeout;
     try {
-      await state.context.resume();
-    } catch (_err) {
-      // Ignore and let caller continue with best effort.
+      await Promise.race([
+        context.resume(),
+        new Promise((_, reject) => {
+          timeout = setTimeout(() => reject(new Error("Audio resume timed out")), 3000);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeout);
     }
+  }
+  if (context.state !== "running") {
+    throw new Error("Audio is not running");
   }
 }
 
@@ -309,33 +339,47 @@ function setAudioStatus(text, tone = "muted") {
 }
 
 async function requestWakeLock() {
-  if (!state.playing || !navigator.wakeLock || state.wakeLock) {
+  if (!state.playing || !navigator.wakeLock || state.wakeLock || state.wakeLockPending || document.visibilityState !== "visible") {
     return;
   }
+  state.wakeLockPending = true;
   try {
-    state.wakeLock = await navigator.wakeLock.request("screen");
-    state.wakeLock.addEventListener("release", () => {
-      state.wakeLock = null;
+    const lock = await navigator.wakeLock.request("screen");
+    if (!state.playing || document.visibilityState !== "visible") {
+      await lock.release();
+      return;
+    }
+    state.wakeLock = lock;
+    lock.addEventListener("release", () => {
+      if (state.wakeLock === lock) state.wakeLock = null;
     });
   } catch (_err) {
     // Wake locks are optional and can be declined by the browser or device.
+  } finally {
+    state.wakeLockPending = false;
   }
 }
 
 async function releaseWakeLock() {
-  if (!state.wakeLock) {
+  const lock = state.wakeLock;
+  state.wakeLock = null;
+  if (!lock) {
     return;
   }
   try {
-    await state.wakeLock.release();
+    await lock.release();
   } catch (_err) {
     // The browser may have already released the lock.
   }
-  state.wakeLock = null;
 }
 
-function randomPick(items) {
-  return items[Math.floor(Math.random() * items.length)];
+function trackSource(source) {
+  state.activeSources.add(source);
+  source.addEventListener("ended", () => {
+    state.activeSources.delete(source);
+    source.disconnect();
+  }, { once: true });
+  return source;
 }
 
 function deterministicPick(items, key = 0) {
@@ -364,7 +408,16 @@ async function loadOneSample(id, url) {
   state.sampleBuffers.set(id, decoded);
 }
 
-async function prepareSamples() {
+function prepareSamples() {
+  if (!state.sampleLoadPromise) {
+    state.sampleLoadPromise = loadSamples().finally(() => {
+      state.sampleLoadPromise = null;
+    });
+  }
+  return state.sampleLoadPromise;
+}
+
+async function loadSamples() {
   if (state.samplesReady || state.loadingSamples) {
     return;
   }
@@ -414,7 +467,7 @@ function playSample(sampleId, time, gainValue = 1, playbackRate = 1) {
   if (!buffer) {
     return false;
   }
-  const src = state.context.createBufferSource();
+  const src = trackSource(state.context.createBufferSource());
   const gain = state.context.createGain();
   src.buffer = buffer;
   src.playbackRate.setValueAtTime(playbackRate * tuningPlaybackRate(), time);
@@ -440,7 +493,7 @@ function playBolWithSamples(bol, time) {
 }
 
 function playDayan(time, freq = 540, decay = 0.16, level = 0.34) {
-  const osc = state.context.createOscillator();
+  const osc = trackSource(state.context.createOscillator());
   osc.type = "triangle";
   osc.frequency.setValueAtTime(freq * tuningPlaybackRate(), time);
   const env = percussiveGain(time, 0.002, decay, level);
@@ -450,7 +503,7 @@ function playDayan(time, freq = 540, decay = 0.16, level = 0.34) {
 }
 
 function playBayan(time, freqStart = 170, freqEnd = 110, decay = 0.22, level = 0.48) {
-  const osc = state.context.createOscillator();
+  const osc = trackSource(state.context.createOscillator());
   osc.type = "sine";
   const rate = tuningPlaybackRate();
   osc.frequency.setValueAtTime(freqStart * rate, time);
@@ -462,14 +515,16 @@ function playBayan(time, freqStart = 170, freqEnd = 110, decay = 0.22, level = 0
 }
 
 function playAttackNoise(time, decay = 0.045, level = 0.12) {
-  const size = Math.floor(state.context.sampleRate * 0.08);
-  const buffer = state.context.createBuffer(1, size, state.context.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < size; i += 1) {
-    data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+  if (!state.noiseBuffer) {
+    const size = Math.floor(state.context.sampleRate * 0.08);
+    state.noiseBuffer = state.context.createBuffer(1, size, state.context.sampleRate);
+    const data = state.noiseBuffer.getChannelData(0);
+    for (let i = 0; i < size; i += 1) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+    }
   }
-  const src = state.context.createBufferSource();
-  src.buffer = buffer;
+  const src = trackSource(state.context.createBufferSource());
+  src.buffer = state.noiseBuffer;
   const hp = state.context.createBiquadFilter();
   hp.type = "highpass";
   hp.frequency.value = 1400;
@@ -534,8 +589,7 @@ function triggerBaseBol(bol, time) {
 function triggerBol(bol, time, beatDuration) {
   const combined = COMBINED_BOLS[bol];
   if (combined) {
-    const splitRatio = combined.length === 2 ? (COMBINED_SPLIT_RATIO[bol] ?? 0.5) : 1 / combined.length;
-    const split = Math.max(0.035, beatDuration * splitRatio);
+    const split = beatDuration / combined.length;
     combined.forEach((baseBol, index) => triggerBaseBol(baseBol, time + index * split));
     return;
   }
@@ -718,13 +772,18 @@ function scheduleBeat(time, idx, beatDuration) {
   triggerBol(taal.bols[idx], time, beatDuration);
 
   const deltaMs = Math.max(0, (time - state.context.currentTime) * 1000);
-  setTimeout(() => {
+  const generation = state.playbackGeneration;
+  const timeout = setTimeout(() => {
+    state.beatTimeouts.delete(timeout);
+    if (!state.playing || generation !== state.playbackGeneration) return;
     setActiveBeat(idx);
     startBeatProgress(beatDuration);
   }, deltaMs);
+  state.beatTimeouts.add(timeout);
 }
 
 function scheduler() {
+  if (!state.playing) return;
   const taal = currentTaal();
   const secondsPerBeat = 60 / state.tempo;
   while (state.nextNoteTime < state.context.currentTime + SCHEDULE_AHEAD_SEC) {
@@ -735,32 +794,50 @@ function scheduler() {
 }
 
 async function start() {
-  await resumeAudioContext();
-  unlockAudioClick();
-  if (state.playing) {
-    return;
-  }
-  if (state.soundPack !== "synth" && !state.samplesReady) {
-    setToggleDisabled(true);
-    await prepareSamples();
-    setToggleDisabled(false);
-    if (!state.samplesReady && state.soundPack === "sonicpi") {
-      setAudioStatus("Sonic Pi pack failed on this browser. Using synth fallback.", "error");
+  if (state.playing || state.starting) return;
+  state.starting = true;
+  const generation = ++state.playbackGeneration;
+  try {
+    // A fresh context avoids stale mobile audio sessions after long idle periods.
+    resetAudioContext();
+    await resumeAudioContext();
+    unlockAudioClick();
+    if (state.soundPack !== "synth" && !state.samplesReady) {
+      setToggleDisabled(true);
+      await prepareSamples();
+      setToggleDisabled(false);
+      if (!state.samplesReady && state.soundPack === "sonicpi") {
+        setAudioStatus("Sonic Pi pack failed on this browser. Using synth fallback.", "error");
+      }
     }
+    if (generation !== state.playbackGeneration) return;
+    await resumeAudioContext();
+    if (generation !== state.playbackGeneration) return;
+    state.playing = true;
+    state.currentStep = 0;
+    state.nextNoteTime = state.context.currentTime + 0.06;
+    setPlayUI(true);
+    requestWakeLock();
+    state.timerId = window.setInterval(scheduler, LOOK_AHEAD_MS);
+  } catch (_err) {
+    resetAudioContext();
+    setAudioStatus("Audio could not start. Try pressing Play again.", "error");
+  } finally {
+    state.starting = false;
+    setToggleDisabled(false);
+    setPlayUI(state.playing);
   }
-  state.playing = true;
-  state.currentStep = 0;
-  state.nextNoteTime = state.context.currentTime + 0.06;
-  setPlayUI(true);
-  requestWakeLock();
-  state.timerId = window.setInterval(scheduler, LOOK_AHEAD_MS);
 }
 
 function stop() {
-  if (!state.playing) {
-    return;
-  }
+  state.playbackGeneration += 1;
   state.playing = false;
+  state.beatTimeouts.forEach(clearTimeout);
+  state.beatTimeouts.clear();
+  state.activeSources.forEach((source) => {
+    try { source.stop(); } catch (_err) { /* Already ended. */ }
+  });
+  state.activeSources.clear();
   if (state.timerId) {
     clearInterval(state.timerId);
     state.timerId = null;
@@ -870,8 +947,12 @@ function bindEvents() {
   });
 
   ui.taalSelect.addEventListener("change", (e) => {
+    const wasPlaying = state.playing;
+    stop();
     state.selectedTaal = e.target.value;
+    state.currentStep = 0;
     renderBeatGrid();
+    if (wasPlaying) start();
   });
 
   if (ui.samplePack) {
@@ -890,7 +971,9 @@ function bindEvents() {
     if (!Number.isInteger(idx)) {
       return;
     }
-    previewBeat(idx);
+    previewBeat(idx).catch(() => {
+      setAudioStatus("Audio could not start. Try tapping the beat again.", "error");
+    });
   });
 
   if (ui.playToggleBtn) {
