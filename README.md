@@ -60,10 +60,7 @@ After install:
 
 ## Controls
 - Select a taal
-- Open `☰ Advanced` for sound pack options:
-  - `Auto` (tries real samples first, falls back to synth)
-  - `Sonic Pi (Real)` (prioritizes real sample playback)
-  - `Synth` (always uses built-in synthesized tabla)
+- Real tabla samples load automatically, with synthesized playback as a fallback.
 - Set tempo with slider in 5 BPM steps (40-700)
 - Enter exact tempo with numeric BPM input (40-700)
 - Use `- / +` nudge buttons for easier mobile tempo and tuning control
@@ -72,7 +69,7 @@ After install:
 - Play/Stop loop
 - Click beat numbers to preview individual bols
 - Sam/Taali/Khali markers are shown on the beat grid
-- iPhone hint: if audio is missing, turn off silent mode and increase media volume
+- Audio uses the music playback session where supported so iPhone silent mode does not mute tabla. If audio is missing, raise media volume; older browsers may also require turning off silent mode.
 
 ## Keyboard shortcuts
 - `Space`: play/stop

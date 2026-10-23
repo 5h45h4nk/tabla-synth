@@ -116,7 +116,6 @@ const COMBINED_BOLS = {
 
 const ui = {
   taalSelect: document.getElementById("taalSelect"),
-  samplePack: document.getElementById("samplePack"),
   tempo: document.getElementById("tempo"),
   tempoInput: document.getElementById("tempoInput"),
   tempoDownBtn: document.getElementById("tempoDownBtn"),
@@ -253,6 +252,13 @@ function commitTempoInput() {
 
 function ensureAudio() {
   if (!state.context || state.context.state === "closed") {
+    try {
+      if (navigator.audioSession) {
+        navigator.audioSession.type = "playback";
+      }
+    } catch (_err) {
+      // Audio session configuration is optional; retain normal browser playback.
+    }
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     state.context = new AudioCtx();
     state.master = state.context.createGain();
@@ -954,13 +960,6 @@ function bindEvents() {
     renderBeatGrid();
     if (wasPlaying) start();
   });
-
-  if (ui.samplePack) {
-    ui.samplePack.addEventListener("change", (e) => {
-      state.soundPack = e.target.value;
-      refreshStatusForPack();
-    });
-  }
 
   ui.beatGrid.addEventListener("click", (e) => {
     const beatEl = e.target.closest(".beat");

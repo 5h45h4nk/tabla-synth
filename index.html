@@ -23,20 +23,6 @@
       </header>
 
       <section class="panel controls">
-        <details class="advanced-menu">
-          <summary class="advanced-toggle">☰ Advanced</summary>
-          <div class="advanced-panel">
-            <div class="field">
-              <label for="samplePack">Sound Pack</label>
-              <select id="samplePack">
-                <option value="auto">Auto (Real then fallback)</option>
-                <option value="sonicpi">Sonic Pi (Real)</option>
-                <option value="synth">Synth (Built-in)</option>
-              </select>
-            </div>
-          </div>
-        </details>
-
         <div class="field">
           <label for="taalSelect">Taal</label>
           <select id="taalSelect"></select>
@@ -115,7 +101,7 @@
           <span id="tapValue" class="tap-value">Tap x2+</span>
         </div>
         <p id="audioStatus" class="audio-status">Real tabla samples will load on first play.</p>
-        <p class="audio-hint">No sound on iPhone? Turn off silent mode and raise media volume.</p>
+        <p class="audio-hint">No sound? Raise media volume. On older iPhones, also turn off silent mode.</p>
       </section>
 
       <section class="panel cycle">
