@@ -80,6 +80,32 @@ body {
   gap: 8px;
 }
 
+.scale-section summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.scale-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.scale-section summary::before {
+  content: "▸";
+}
+
+.scale-section[open] summary::before {
+  content: "▾";
+}
+
+.scale-section summary > span:last-child {
+  margin-left: auto;
+}
+
 label {
   font-weight: 600;
   letter-spacing: 0.02em;

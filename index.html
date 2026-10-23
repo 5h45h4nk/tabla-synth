@@ -65,14 +65,14 @@
           </div>
         </div>
 
-        <div class="field">
-          <div class="label-row">
-            <label for="tuning">Scale</label>
+        <details class="scale-section">
+          <summary>
+            <span>Scale</span>
             <span><strong id="tuningValue">C</strong> (<span id="tuningSemitones">0</span>)</span>
-          </div>
+          </summary>
           <div class="slider-row">
             <button id="tuningDownBtn" class="nudge-btn" type="button" aria-label="Tuning down">-</button>
-            <input id="tuning" type="range" min="-12" max="12" step="1" value="0" list="noteMarkers" />
+            <input id="tuning" aria-label="Scale tuning in semitones" type="range" min="-12" max="12" step="1" value="0" list="noteMarkers" />
             <button id="tuningUpBtn" class="nudge-btn" type="button" aria-label="Tuning up">+</button>
           </div>
           <datalist id="noteMarkers">
@@ -93,7 +93,7 @@
             <option value="12" label="C"></option>
           </datalist>
           <div id="tuningMarkers" class="tuning-markers"></div>
-        </div>
+        </details>
 
         <div class="actions">
           <button id="playToggleBtn" class="btn primary">Play</button>
